@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.enxv.aeronauticsstructuretool.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "mixins": [
+    "compat.sable.PhysicsColliderBlockGetterAccess",
+    "compat.sable.RapierVoxelColliderBakeryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "create_aeronautics_toolgun:item/portable_structure_container_full"
+  }
+}

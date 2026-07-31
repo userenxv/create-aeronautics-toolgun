@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_aeronautics_toolgun:block/portable_structure_printer"
+    }
+  }
+}

@@ -1,0 +1,180 @@
+sourceSets {
+    verification {
+        compileClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+def verificationJavaExec = { String taskName, String taskDescription, String mainClassName ->
+    tasks.register(taskName, JavaExec) {
+        group = 'verification'
+        description = taskDescription
+        dependsOn tasks.named('verificationClasses')
+        classpath = sourceSets.verification.runtimeClasspath
+        mainClass = mainClassName
+    }
+}
+
+tasks.register('inspectSavedBlueprint', JavaExec) {
+    group = 'verification'
+    description = 'Inspect one saved blueprint using the project runtime classpath.'
+    dependsOn tasks.named('verificationClasses')
+    classpath = sourceSets.verification.runtimeClasspath
+    mainClass = 'com.enxv.aeronauticsstructuretool.DebugInspectSavedBlueprint'
+    if (project.hasProperty('inspectFile')) {
+        args project.property('inspectFile')
+    }
+    if (project.hasProperty('inspectValidateOnly')) {
+        args '--validate-only'
+    }
+}
+
+tasks.register('verifySourceHygiene') {
+    group = 'verification'
+    description = 'Reject silent catches, hard-coded disabled branches, and console diagnostics in runtime code.'
+
+    doLast {
+        def violations = []
+        fileTree('src/main/java').matching { include '**/*.java' }.each { sourceFile ->
+            def source = sourceFile.getText('UTF-8')
+            if (source =~ /(?s)catch\s*\([^)]*\)\s*\{\s*\}/) {
+                violations.add(sourceFile.toString() + ': empty catch block')
+            }
+            if (source =~ /\bif\s*\(\s*(true|false)\s*\)/) {
+                violations.add(sourceFile.toString() + ': hard-coded conditional branch')
+            }
+            if (source.contains('printStackTrace(')
+                    || source.contains('System.out.')
+                    || source.contains('System.err.')) {
+                violations.add(sourceFile.toString() + ': direct console diagnostic')
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException('Source hygiene violations:\n' + violations.join('\n'))
+        }
+    }
+}
+
+tasks.register('compileLegacySableJava', JavaCompile) {
+    group = 'verification'
+    description = 'Compile all runtime sources against the supported Sable 1.1.3 API layout.'
+    dependsOn tasks.named('extractLegacyNestedDependencies')
+    source = sourceSets.main.java
+    def primarySableClasspath = files(configurations.primarySable) + project.ext.primaryNestedJars.filter {
+        it.name.startsWith('sable-companion-common-')
+    }
+    classpath = (sourceSets.main.compileClasspath - primarySableClasspath
+            + configurations.legacySable + project.ext.legacyNestedJars)
+    destinationDirectory = layout.buildDirectory.dir('classes/java/legacySable')
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.incremental = false
+}
+
+verificationJavaExec(
+        'verifyBlueprintPlacement',
+        'Check floor clearance, dedicated-server anchors, world height remapping, and relative block-entity coordinates.',
+        'com.enxv.aeronauticsstructuretool.verification.BlueprintPlacementRegressionCheck'
+)
+verificationJavaExec(
+        'verifySynaxisBlueprintNbt',
+        'Check backward-compatible Synaxis AST manifests and strict malformed-data handling.',
+        'com.enxv.aeronauticsstructuretool.compat.synaxis.SynaxisBlueprintNbtRegressionCheck'
+)
+verificationJavaExec(
+        'verifyConstraintPersistentNbt',
+        'Check current and legacy toolgun constraint persistence codecs.',
+        'com.enxv.aeronauticsstructuretool.toolgun.constraint.persistence.ConstraintPersistentNbtRegressionCheck'
+)
+verificationJavaExec(
+        'verifyConstraintBlueprintPolicy',
+        'Check non-fatal constraint blueprint restoration diagnostics.',
+        'com.enxv.aeronauticsstructuretool.toolgun.constraint.ConstraintBlueprintPolicyRegressionCheck'
+)
+verificationJavaExec(
+        'verifySimulatedSwivelNbt',
+        'Check Sable-owned Simulated swivel mapping and strict malformed-link handling.',
+        'com.enxv.aeronauticsstructuretool.compat.simulated.SimulatedSwivelNbtRegressionCheck'
+)
+verificationJavaExec(
+        'verifyBlueprintData',
+        'Check strict native/Create/VMod parsing, sanitization, and survival material accounting.',
+        'com.enxv.aeronauticsstructuretool.verification.BlueprintDataRegressionCheck'
+)
+verificationJavaExec(
+        'verifyDriveByWireMissingDependency',
+        'Check that missing DriveByWire data is discarded and reported instead of blocking placement.',
+        'com.enxv.aeronauticsstructuretool.compat.drivebywire.DriveByWireMissingDependencyRegressionCheck'
+)
+verificationJavaExec(
+        'verifyDriveByWireCoordinateSpace',
+        'Check legacy AST Plot-local migration and current DriveByWire Plot-center-relative coordinates.',
+        'com.enxv.aeronauticsstructuretool.compat.drivebywire.DriveByWireCoordinateSpaceRegressionCheck'
+)
+verificationJavaExec(
+        'verifyDriveByWireDeferredRestore',
+        'Check dedicated-server DriveByWire endpoint deferral and idempotent retry classification.',
+        'com.enxv.aeronauticsstructuretool.compat.drivebywire.DriveByWireDeferredRestoreRegressionCheck'
+)
+verificationJavaExec(
+        'verifyMissingBiomeFallback',
+        'Check that unavailable Plot biomes fall back with a warning instead of rejecting placement.',
+        'com.enxv.aeronauticsstructuretool.blueprint.security.MissingBiomeFallbackRegressionCheck'
+)
+verificationJavaExec(
+        'verifyMagneticDragControl',
+        'Check magnetic gun target geometry, quaternion error, critical damping, and safety limits.',
+        'com.enxv.aeronauticsstructuretool.toolgun.magnetic.MagneticDragControlRegressionCheck'
+)
+verificationJavaExec(
+        'verifyMianbaoModernWarfareCompat',
+        'Check the exact recurring-tick contracts restored for mianbao ModernWarfare blocks.',
+        'com.enxv.aeronauticsstructuretool.compat.mianbao.MianbaoModernWarfareCompatRegressionCheck'
+)
+
+def compatibilitySymbols = verificationJavaExec(
+        'verifyCompatibilitySymbols',
+        'Inspect primary, legacy, and available optional-mod jars for every compatibility bridge symbol.',
+        'com.enxv.aeronauticsstructuretool.verification.CompatibilitySymbolCheck'
+)
+
+def compatibilityArtifacts = tasks.register('prepareCompatibilityArtifacts', Sync) {
+    into layout.buildDirectory.dir('compatibility-artifacts')
+    from(configurations.primaryCreate) {
+        rename { 'create.jar' }
+    }
+    from(configurations.primarySable) {
+        rename { 'sable-primary.jar' }
+    }
+    from(configurations.legacySable) {
+        rename { 'sable-legacy.jar' }
+    }
+    from(configurations.primaryAeronautics) {
+        rename { 'aeronautics-primary.jar' }
+    }
+    from(configurations.legacyAeronautics) {
+        rename { 'aeronautics-legacy.jar' }
+    }
+}
+compatibilitySymbols.configure {
+    dependsOn compatibilityArtifacts
+    args rootProject.projectDir.absolutePath
+}
+
+tasks.named('check').configure {
+    dependsOn tasks.named('verifySourceHygiene')
+    dependsOn tasks.named('compileLegacySableJava')
+    dependsOn tasks.named('verifyBlueprintPlacement')
+    dependsOn tasks.named('verifySynaxisBlueprintNbt')
+    dependsOn tasks.named('verifyConstraintPersistentNbt')
+    dependsOn tasks.named('verifyConstraintBlueprintPolicy')
+    dependsOn tasks.named('verifySimulatedSwivelNbt')
+    dependsOn tasks.named('verifyBlueprintData')
+    dependsOn tasks.named('verifyDriveByWireMissingDependency')
+    dependsOn tasks.named('verifyDriveByWireCoordinateSpace')
+    dependsOn tasks.named('verifyDriveByWireDeferredRestore')
+    dependsOn tasks.named('verifyMissingBiomeFallback')
+    dependsOn tasks.named('verifyMagneticDragControl')
+    dependsOn tasks.named('verifyMianbaoModernWarfareCompat')
+    dependsOn tasks.named('verifyCompatibilitySymbols')
+}

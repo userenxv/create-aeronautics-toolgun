@@ -1,0 +1,520 @@
+{
+  "artifacts": [
+    {
+      "label": "Create 6.0.10 runtime reflection contracts",
+      "path": "build/compatibility-artifacts/create.jar",
+      "required": true,
+      "classes": [
+        "com/simibubi/create/content/contraptions/AbstractContraptionEntity",
+        "com/simibubi/create/content/contraptions/ControlledContraptionEntity",
+        "com/simibubi/create/content/contraptions/OrientedContraptionEntity"
+      ],
+      "methods": [
+        {
+          "owner": "com/simibubi/create/content/contraptions/AbstractContraptionEntity",
+          "name": "getContraption",
+          "descriptor": "()Lcom/simibubi/create/content/contraptions/Contraption;"
+        },
+        {
+          "owner": "com/simibubi/create/content/contraptions/OrientedContraptionEntity",
+          "name": "getInitialOrientation",
+          "descriptor": "()Lnet/minecraft/core/Direction;"
+        }
+      ],
+      "fields": [
+        {
+          "owner": "com/simibubi/create/content/contraptions/ControlledContraptionEntity",
+          "name": "controllerPos",
+          "descriptor": "Lnet/minecraft/core/BlockPos;"
+        },
+        {"owner": "com/simibubi/create/content/contraptions/OrientedContraptionEntity", "name": "yaw", "descriptor": "F"},
+        {"owner": "com/simibubi/create/content/contraptions/OrientedContraptionEntity", "name": "pitch", "descriptor": "F"},
+        {"owner": "com/simibubi/create/content/contraptions/OrientedContraptionEntity", "name": "prevYaw", "descriptor": "F"},
+        {"owner": "com/simibubi/create/content/contraptions/OrientedContraptionEntity", "name": "prevPitch", "descriptor": "F"}
+      ]
+    },
+    {
+      "label": "Sable 2.0.3 primary API",
+      "path": "build/compatibility-artifacts/sable-primary.jar",
+      "required": true,
+      "classes": [
+        "dev/ryanhcode/sable/Sable",
+        "dev/ryanhcode/sable/physics/impl/rapier/collider/PhysicsColliderBlockGetter",
+        "dev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderBakery",
+        "dev/ryanhcode/sable/api/physics/PhysicsPipeline",
+        "dev/ryanhcode/sable/api/physics/constraint/PhysicsConstraintHandle",
+        "dev/ryanhcode/sable/api/physics/constraint/FreeConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/constraint/FixedConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/constraint/GenericConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/constraint/RotaryConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject",
+        "dev/ryanhcode/sable/api/physics/object/ArbitraryPhysicsObject",
+        "dev/ryanhcode/sable/sublevel/system/SubLevelPhysicsSystem",
+        "dev/ryanhcode/sable/api/sublevel/ServerSubLevelContainer",
+        "dev/ryanhcode/sable/api/schematic/SubLevelSchematicSerializationContext",
+        "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+        "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunk"
+      ],
+      "methods": [
+        {
+          "owner": "dev/ryanhcode/sable/physics/impl/rapier/collider/PhysicsColliderBlockGetter",
+          "name": "setup",
+          "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderBakery",
+          "name": "buildPhysicsDataForBlock",
+          "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;)Ldev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderData;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/PhysicsPipeline",
+          "name": "addConstraint",
+          "descriptor": "(Ldev/ryanhcode/sable/api/physics/PhysicsPipelineBody;Ldev/ryanhcode/sable/api/physics/PhysicsPipelineBody;Ldev/ryanhcode/sable/api/physics/constraint/PhysicsConstraintConfiguration;)Ldev/ryanhcode/sable/api/physics/constraint/PhysicsConstraintHandle;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/FreeConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Quaterniondc;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/FixedConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Quaterniondc;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/GenericConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Quaterniondc;Lorg/joml/Quaterniondc;Ljava/util/Set;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/RotaryConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+          "name": "getOrLoadHoldingChunk",
+          "descriptor": "(Lnet/minecraft/world/level/ChunkPos;Z)Ldev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunk;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+          "name": "setDirty",
+          "descriptor": "(Lnet/minecraft/world/level/ChunkPos;)V"
+        },
+        {"owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap", "name": "processChanges", "descriptor": "()V"},
+        {"owner": "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject", "name": "updatePose", "descriptor": "()V"},
+        {"owner": "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject", "name": "isActive", "descriptor": "()Z"},
+        {"owner": "dev/ryanhcode/sable/api/sublevel/ServerSubLevelContainer", "name": "physicsSystem", "descriptor": "()Ldev/ryanhcode/sable/sublevel/system/SubLevelPhysicsSystem;"},
+        {"owner": "dev/ryanhcode/sable/sublevel/system/SubLevelPhysicsSystem", "name": "removeObject", "descriptor": "(Ldev/ryanhcode/sable/api/physics/object/ArbitraryPhysicsObject;)V"}
+      ],
+      "fields": [
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+          "name": "allHoldingSubLevels",
+          "descriptor": "Lit/unimi/dsi/fastutil/objects/Object2ObjectMap;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunk",
+          "name": "loadedHoldingSubLevels",
+          "descriptor": "Lit/unimi/dsi/fastutil/objects/Object2ObjectMap;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject",
+          "name": "points",
+          "descriptor": "Lit/unimi/dsi/fastutil/objects/ObjectList;"
+        }
+      ]
+    },
+    {
+      "label": "Sable 1.1.3 legacy API",
+      "path": "build/compatibility-artifacts/sable-legacy.jar",
+      "required": true,
+      "classes": [
+        "dev/ryanhcode/sable/api/physics/PhysicsPipeline",
+        "dev/ryanhcode/sable/api/physics/constraint/PhysicsConstraintHandle",
+        "dev/ryanhcode/sable/api/physics/constraint/free/FreeConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/constraint/fixed/FixedConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/constraint/generic/GenericConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/constraint/rotary/RotaryConstraintConfiguration",
+        "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject",
+        "dev/ryanhcode/sable/api/physics/object/ArbitraryPhysicsObject",
+        "dev/ryanhcode/sable/sublevel/system/SubLevelPhysicsSystem",
+        "dev/ryanhcode/sable/api/sublevel/ServerSubLevelContainer",
+        "dev/ryanhcode/sable/api/schematic/SubLevelSchematicSerializationContext",
+        "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+        "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunk"
+      ],
+      "methods": [
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/PhysicsPipeline",
+          "name": "addConstraint",
+          "descriptor": "(Ldev/ryanhcode/sable/sublevel/ServerSubLevel;Ldev/ryanhcode/sable/sublevel/ServerSubLevel;Ldev/ryanhcode/sable/api/physics/constraint/PhysicsConstraintConfiguration;)Ldev/ryanhcode/sable/api/physics/constraint/PhysicsConstraintHandle;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/free/FreeConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Quaterniondc;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/fixed/FixedConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Quaterniondc;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/generic/GenericConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Quaterniondc;Lorg/joml/Quaterniondc;Ljava/util/Set;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/constraint/rotary/RotaryConstraintConfiguration",
+          "name": "<init>",
+          "descriptor": "(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;)V"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+          "name": "getOrLoadHoldingChunk",
+          "descriptor": "(Lnet/minecraft/world/level/ChunkPos;Z)Ldev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunk;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+          "name": "setDirty",
+          "descriptor": "(Lnet/minecraft/world/level/ChunkPos;)V"
+        },
+        {"owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap", "name": "processChanges", "descriptor": "()V"},
+        {"owner": "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject", "name": "updatePose", "descriptor": "()V"},
+        {"owner": "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject", "name": "isActive", "descriptor": "()Z"},
+        {"owner": "dev/ryanhcode/sable/api/sublevel/ServerSubLevelContainer", "name": "physicsSystem", "descriptor": "()Ldev/ryanhcode/sable/sublevel/system/SubLevelPhysicsSystem;"},
+        {"owner": "dev/ryanhcode/sable/sublevel/system/SubLevelPhysicsSystem", "name": "removeObject", "descriptor": "(Ldev/ryanhcode/sable/api/physics/object/ArbitraryPhysicsObject;)V"}
+      ],
+      "fields": [
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunkMap",
+          "name": "allHoldingSubLevels",
+          "descriptor": "Lit/unimi/dsi/fastutil/objects/Object2ObjectMap;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/sublevel/storage/holding/SubLevelHoldingChunk",
+          "name": "loadedHoldingSubLevels",
+          "descriptor": "Lit/unimi/dsi/fastutil/objects/Object2ObjectMap;"
+        },
+        {
+          "owner": "dev/ryanhcode/sable/api/physics/object/rope/RopePhysicsObject",
+          "name": "points",
+          "descriptor": "Lit/unimi/dsi/fastutil/objects/ObjectList;"
+        }
+      ]
+    },
+    {
+      "label": "Aeronautics bundle 1.3.0 primary integrations",
+      "path": "build/compatibility-artifacts/aeronautics-primary.jar",
+      "required": true,
+      "classes": [
+        "dev/eriksonn/aeronautics/content/blocks/propeller/bearing/contraption/PropellerBearingContraptionEntity",
+        "dev/eriksonn/aeronautics/content/blocks/propeller/bearing/propeller_bearing/PropellerBearingBlockEntity",
+        "dev/ryanhcode/offroad/content/entities/BoreheadContraptionEntity",
+        "dev/ryanhcode/offroad/content/blocks/borehead_bearing/BoreheadBearingBlockEntity",
+        "dev/ryanhcode/offroad/content/blocks/wheel_mount/WheelMountBlockEntity",
+        "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBlockEntity",
+        "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachmentPoint",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment",
+        "dev/simulated_team/simulated/content/blocks/swivel_bearing/link_block/SwivelBearingPlateBlockEntity",
+        "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler",
+        "dev/simulated_team/simulated/content/entities/honey_glue/HoneyGlueEntity",
+        "dev/simulated_team/simulated/content/blocks/docking_connector/DockingConnectorBlockEntity"
+      ],
+      "methods": [
+        {
+          "owner": "dev/eriksonn/aeronautics/content/blocks/propeller/bearing/contraption/PropellerBearingContraptionEntity",
+          "name": "create",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lcom/simibubi/create/content/contraptions/IControlContraption;Lcom/simibubi/create/content/contraptions/Contraption;)Lcom/simibubi/create/content/contraptions/ControlledContraptionEntity;"
+        },
+        {
+          "owner": "dev/ryanhcode/offroad/content/entities/BoreheadContraptionEntity",
+          "name": "create",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lcom/simibubi/create/content/contraptions/IControlContraption;Lcom/simibubi/create/content/contraptions/Contraption;)Ldev/ryanhcode/offroad/content/entities/BoreheadContraptionEntity;"
+        },
+        {"owner": "dev/ryanhcode/offroad/content/blocks/wheel_mount/WheelMountBlockEntity", "name": "onStackChanged", "descriptor": "()V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/swivel_bearing/link_block/SwivelBearingPlateBlockEntity", "name": "fixParentLinkingWhenMoved", "descriptor": "()V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBlockEntity", "name": "getBehavior", "descriptor": "()Ldev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "isAttached", "descriptor": "()Z"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "ownsRope", "descriptor": "()Z"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "getOwnedStrand", "descriptor": "()Ldev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "getAttachmentPoint", "descriptor": "()Lnet/minecraft/world/phys/Vec3;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "getOrCreate", "descriptor": "(Lnet/minecraft/world/level/Level;)Ldev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "addStrand", "descriptor": "(Ldev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "getAllStrands", "descriptor": "()Ljava/util/Collection;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "removeStrand", "descriptor": "(Ljava/util/UUID;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "getUUID", "descriptor": "()Ljava/util/UUID;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "updateFirstSegmentExtension", "descriptor": "(D)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "addAttachment", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;Ldev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachmentPoint;Ldev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "reattachConstraints", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "getAttachments", "descriptor": "()Ljava/lang/Iterable;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "removeConstraints", "descriptor": "()V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment", "name": "subLevelID", "descriptor": "()Ljava/util/UUID;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment", "name": "<init>", "descriptor": "(Ldev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachmentPoint;Ljava/util/UUID;Lnet/minecraft/core/BlockPos;)V"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "get", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;)Ldev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler;"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "removeLock", "descriptor": "(Ldev/ryanhcode/sable/sublevel/SubLevel;)V"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "isLocked", "descriptor": "(Ldev/ryanhcode/sable/sublevel/SubLevel;)Z"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "toggleLock", "descriptor": "(Ljava/util/UUID;)V"},
+        {"owner": "dev/simulated_team/simulated/content/entities/honey_glue/HoneyGlueEntity", "name": "<init>", "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/phys/AABB;)V"}
+      ],
+      "fields": [
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "attachedRopeID", "descriptor": "Ljava/util/UUID;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/docking_connector/DockingConnectorBlockEntity", "name": "otherConnectorPosition", "descriptor": "Lnet/minecraft/core/BlockPos;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/docking_connector/DockingConnectorBlockEntity", "name": "otherConnectorSubLevelId", "descriptor": "Ljava/util/UUID;"}
+      ]
+    },
+    {
+      "label": "Aeronautics bundle 1.1.3 legacy integrations",
+      "path": "build/compatibility-artifacts/aeronautics-legacy.jar",
+      "required": true,
+      "classes": [
+        "dev/eriksonn/aeronautics/content/blocks/propeller/bearing/contraption/PropellerBearingContraptionEntity",
+        "dev/eriksonn/aeronautics/content/blocks/propeller/bearing/propeller_bearing/PropellerBearingBlockEntity",
+        "dev/ryanhcode/offroad/content/entities/BoreheadContraptionEntity",
+        "dev/ryanhcode/offroad/content/blocks/borehead_bearing/BoreheadBearingBlockEntity",
+        "dev/ryanhcode/offroad/content/blocks/wheel_mount/WheelMountBlockEntity",
+        "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBlockEntity",
+        "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachmentPoint",
+        "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment",
+        "dev/simulated_team/simulated/content/blocks/swivel_bearing/link_block/SwivelBearingPlateBlockEntity",
+        "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler",
+        "dev/simulated_team/simulated/content/entities/honey_glue/HoneyGlueEntity",
+        "dev/simulated_team/simulated/content/blocks/docking_connector/DockingConnectorBlockEntity"
+      ],
+      "methods": [
+        {
+          "owner": "dev/eriksonn/aeronautics/content/blocks/propeller/bearing/contraption/PropellerBearingContraptionEntity",
+          "name": "create",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lcom/simibubi/create/content/contraptions/IControlContraption;Lcom/simibubi/create/content/contraptions/Contraption;)Lcom/simibubi/create/content/contraptions/ControlledContraptionEntity;"
+        },
+        {
+          "owner": "dev/ryanhcode/offroad/content/entities/BoreheadContraptionEntity",
+          "name": "create",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lcom/simibubi/create/content/contraptions/IControlContraption;Lcom/simibubi/create/content/contraptions/Contraption;)Ldev/ryanhcode/offroad/content/entities/BoreheadContraptionEntity;"
+        },
+        {"owner": "dev/ryanhcode/offroad/content/blocks/wheel_mount/WheelMountBlockEntity", "name": "onStackChanged", "descriptor": "()V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/swivel_bearing/link_block/SwivelBearingPlateBlockEntity", "name": "fixParentLinkingWhenMoved", "descriptor": "()V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBlockEntity", "name": "getBehavior", "descriptor": "()Ldev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "isAttached", "descriptor": "()Z"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "ownsRope", "descriptor": "()Z"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "getOwnedStrand", "descriptor": "()Ldev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "getAttachmentPoint", "descriptor": "()Lnet/minecraft/world/phys/Vec3;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "getOrCreate", "descriptor": "(Lnet/minecraft/world/level/Level;)Ldev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "addStrand", "descriptor": "(Ldev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "getAllStrands", "descriptor": "()Ljava/util/Collection;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerLevelRopeManager", "name": "removeStrand", "descriptor": "(Ljava/util/UUID;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "getUUID", "descriptor": "()Ljava/util/UUID;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "updateFirstSegmentExtension", "descriptor": "(D)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "addAttachment", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;Ldev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachmentPoint;Ldev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "reattachConstraints", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;)V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "getAttachments", "descriptor": "()Ljava/lang/Iterable;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/ServerRopeStrand", "name": "removeConstraints", "descriptor": "()V"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment", "name": "subLevelID", "descriptor": "()Ljava/util/UUID;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachment", "name": "<init>", "descriptor": "(Ldev/simulated_team/simulated/content/blocks/rope/strand/server/RopeAttachmentPoint;Ljava/util/UUID;Lnet/minecraft/core/BlockPos;)V"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "get", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;)Ldev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler;"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "removeLock", "descriptor": "(Ldev/ryanhcode/sable/sublevel/SubLevel;)V"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "isLocked", "descriptor": "(Ldev/ryanhcode/sable/sublevel/SubLevel;)Z"},
+        {"owner": "dev/simulated_team/simulated/content/physics_staff/PhysicsStaffServerHandler", "name": "toggleLock", "descriptor": "(Ljava/util/UUID;)V"},
+        {"owner": "dev/simulated_team/simulated/content/entities/honey_glue/HoneyGlueEntity", "name": "<init>", "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/phys/AABB;)V"}
+      ],
+      "fields": [
+        {"owner": "dev/simulated_team/simulated/content/blocks/rope/RopeStrandHolderBehavior", "name": "attachedRopeID", "descriptor": "Ljava/util/UUID;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/docking_connector/DockingConnectorBlockEntity", "name": "otherConnectorPosition", "descriptor": "Lnet/minecraft/core/BlockPos;"},
+        {"owner": "dev/simulated_team/simulated/content/blocks/docking_connector/DockingConnectorBlockEntity", "name": "otherConnectorSubLevelId", "descriptor": "Ljava/util/UUID;"}
+      ]
+    },
+    {
+      "label": "DriveByWire 0.3.0",
+      "path": "libs/optional/drivebywire-0.3.0.jar",
+      "required": false,
+      "classes": [
+        "edn/stratodonut/drivebywire/wire/WireNetworkManager",
+        "edn/stratodonut/drivebywire/wire/WireNetworkManager$BackupSnapshot",
+        "edn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult",
+        "edn/stratodonut/drivebywire/blocks/WireNetworkBackupBlockEntity",
+        "edn/stratodonut/drivebywire/network/WireNetworkFullSyncPacket"
+      ],
+      "methods": [
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager", "name": "get", "descriptor": "(Lnet/minecraft/world/level/Level;)Ledn/stratodonut/drivebywire/wire/WireNetworkManager;"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager", "name": "createBackupSnapshot", "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Ledn/stratodonut/drivebywire/wire/WireNetworkManager$BackupSnapshot;"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager$BackupSnapshot", "name": "data", "descriptor": "()Lnet/minecraft/nbt/CompoundTag;"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager", "name": "transformBackupSnapshotForPlacement", "descriptor": "(Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/BlockPos;Ldev/ryanhcode/sable/api/schematic/SubLevelSchematicSerializationContext;)Lnet/minecraft/nbt/CompoundTag;"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager", "name": "restoreBackupSnapshot", "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/nbt/CompoundTag;)Ledn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult;"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult", "name": "restoredConnections", "descriptor": "()I"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult", "name": "existingConnections", "descriptor": "()I"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult", "name": "deferredConnections", "descriptor": "()I"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult", "name": "skippedConnections", "descriptor": "()I"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult", "name": "expectedConnections", "descriptor": "()I"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager$RestoreResult", "name": "attempted", "descriptor": "()Z"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager", "name": "computeWorldSignal", "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)I"},
+        {"owner": "edn/stratodonut/drivebywire/wire/WireNetworkManager", "name": "trySetSignalAt", "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Ljava/lang/String;I)V"},
+        {"owner": "edn/stratodonut/drivebywire/network/WireNetworkFullSyncPacket", "name": "sendTo", "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;)V"}
+      ],
+      "fields": [
+        {"owner": "edn/stratodonut/drivebywire/blocks/WireNetworkBackupBlockEntity", "name": "pendingBackupData", "descriptor": "Lnet/minecraft/nbt/CompoundTag;"},
+        {"owner": "edn/stratodonut/drivebywire/blocks/WireNetworkBackupBlockEntity", "name": "needsRestore", "descriptor": "Z"},
+        {"owner": "edn/stratodonut/drivebywire/blocks/WireNetworkBackupBlockEntity", "name": "restoreRetryCooldown", "descriptor": "I"},
+        {"owner": "edn/stratodonut/drivebywire/blocks/WireNetworkBackupBlockEntity", "name": "restoreAttempts", "descriptor": "I"}
+      ]
+    },
+    {
+      "label": "Synaxis 1.4.3",
+      "path": "libs/optional/synaxis-1.4.3.jar",
+      "required": false,
+      "classes": [
+        "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager",
+        "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager$ConnectionView",
+        "com/verr1/synaxis/foundation/controllerwire/ControllerSignalSource",
+        "com/verr1/synaxis/foundation/network/SynaxisPackets",
+        "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity",
+        "com/verr1/synaxis/foundation/blockentity/NetworkBlockEntity",
+        "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkWorldRuntimes",
+        "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkLevelRuntime",
+        "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkWorldRuntime",
+        "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkNetworkRuntime",
+        "com/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpointRegistry",
+        "com/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpoint",
+        "com/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpointProvider",
+        "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointAddress",
+        "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef",
+        "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointId",
+        "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord"
+      ],
+      "methods": [
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager", "name": "get", "descriptor": "(Lnet/minecraft/world/level/Level;)Lcom/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager;"},
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager", "name": "connections", "descriptor": "()Ljava/util/List;"},
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager", "name": "createConnection", "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Ljava/lang/String;)Lcom/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager$ConnectionResult;"},
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager$ConnectionView", "name": "source", "descriptor": "()Lnet/minecraft/core/BlockPos;"},
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager$ConnectionView", "name": "sink", "descriptor": "()Lnet/minecraft/core/BlockPos;"},
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager$ConnectionView", "name": "channel", "descriptor": "()Ljava/lang/String;"},
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager$ConnectionView", "name": "direction", "descriptor": "()Lnet/minecraft/core/Direction;"},
+        {"owner": "com/verr1/synaxis/foundation/controllerwire/ControllerSignalSource", "name": "controllerWireHasChannel", "descriptor": "(Ljava/lang/String;)Z"},
+        {"owner": "com/verr1/synaxis/foundation/network/SynaxisPackets", "name": "syncControllerWireInDimension", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;)V"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity", "name": "hasConnectionIntent", "descriptor": "()Z"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity", "name": "connectionTargetPosition", "descriptor": "()Lnet/minecraft/core/BlockPos;"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity", "name": "companionDirection", "descriptor": "()Lnet/minecraft/core/Direction;"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity", "name": "companionAlignmentDirection", "descriptor": "()Lnet/minecraft/core/Direction;"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity", "name": "expectedCompanionUuid", "descriptor": "()Ljava/util/Optional;"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity", "name": "setConnectionIntent", "descriptor": "(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/core/Direction;)V"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/CompanionPhysicsBlockEntity", "name": "setConnectionIntent", "descriptor": "(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/core/Direction;Ljava/util/UUID;)V"},
+        {"owner": "com/verr1/synaxis/foundation/blockentity/NetworkBlockEntity", "name": "writeSafe", "descriptor": "(Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)V"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkWorldRuntimes", "name": "forLevel", "descriptor": "(Lnet/minecraft/server/level/ServerLevel;)Lcom/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkLevelRuntime;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkLevelRuntime", "name": "flushPendingNetworks", "descriptor": "()V"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkLevelRuntime", "name": "runtime", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkWorldRuntime;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkLevelRuntime", "name": "connect", "descriptor": "(Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef;Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef;)Lcom/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkWorldRuntime", "name": "endpoints", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpointRegistry;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkWorldRuntime", "name": "networks", "descriptor": "()Ljava/util/List;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/runtime/CimulinkNetworkRuntime", "name": "links", "descriptor": "()Ljava/util/List;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpointRegistry", "name": "liveEndpoints", "descriptor": "()Ljava/util/Collection;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpoint", "name": "id", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointId;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpoint", "name": "address", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointAddress;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpointProvider", "name": "endpoint", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/CimulinkEndpoint;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointAddress", "name": "dimension", "descriptor": "()Lnet/minecraft/resources/ResourceKey;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointAddress", "name": "pos", "descriptor": "()Lnet/minecraft/core/BlockPos;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef", "name": "of", "descriptor": "(Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointId;Ljava/lang/String;)Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef", "name": "endpointId", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointId;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef", "name": "port", "descriptor": "()Ljava/lang/String;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointId", "name": "value", "descriptor": "()Ljava/util/UUID;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord", "name": "from", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord", "name": "to", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef;"},
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord", "name": "state", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/graph/LinkState;"}
+      ]
+    },
+    {
+      "label": "Create Big Cannons 5.11.7",
+      "path": "libs/optional/createbigcannons-5.11.7+mc.1.21.1.jar",
+      "required": false,
+      "classes": [
+        "rbasamoyai/createbigcannons/cannon_control/contraption/PitchOrientedContraptionEntity",
+        "rbasamoyai/createbigcannons/cannon_control/contraption/AbstractMountedCannonContraption",
+        "rbasamoyai/createbigcannons/cannon_control/fixed_cannon_mount/FixedCannonMountBlockEntity",
+        "rbasamoyai/createbigcannons/cannon_control/cannon_mount/CannonMountBlockEntity"
+      ],
+      "methods": [
+        {
+          "owner": "rbasamoyai/createbigcannons/cannon_control/contraption/PitchOrientedContraptionEntity",
+          "name": "create",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lcom/simibubi/create/content/contraptions/Contraption;Lnet/minecraft/core/Direction;Lrbasamoyai/createbigcannons/cannon_control/ControlPitchContraption$Block;)Lrbasamoyai/createbigcannons/cannon_control/contraption/PitchOrientedContraptionEntity;"
+        },
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/contraption/AbstractMountedCannonContraption", "name": "initialOrientation", "descriptor": "()Lnet/minecraft/core/Direction;"},
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/fixed_cannon_mount/FixedCannonMountBlockEntity", "name": "attach", "descriptor": "(Lrbasamoyai/createbigcannons/cannon_control/contraption/PitchOrientedContraptionEntity;)V"},
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/cannon_mount/CannonMountBlockEntity", "name": "attach", "descriptor": "(Lrbasamoyai/createbigcannons/cannon_control/contraption/PitchOrientedContraptionEntity;)V"},
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/cannon_mount/CannonMountBlockEntity", "name": "applyRotation", "descriptor": "()V"}
+      ],
+      "fields": [
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/contraption/PitchOrientedContraptionEntity", "name": "controllerPos", "descriptor": "Lnet/minecraft/core/BlockPos;"},
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/cannon_mount/CannonMountBlockEntity", "name": "cannonYaw", "descriptor": "F"},
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/cannon_mount/CannonMountBlockEntity", "name": "cannonPitch", "descriptor": "F"},
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/cannon_mount/CannonMountBlockEntity", "name": "prevYaw", "descriptor": "F"},
+        {"owner": "rbasamoyai/createbigcannons/cannon_control/cannon_mount/CannonMountBlockEntity", "name": "prevPitch", "descriptor": "F"}
+      ]
+    },
+    {
+      "label": "Copycats 3.0.4",
+      "path": "libs/optional/copycats-3.0.4+mc.1.21.1-neoforge.jar",
+      "required": false,
+      "classes": [
+        "com/copycatsplus/copycats/foundation/copycat/ICopycatBlockEntity",
+        "com/copycatsplus/copycats/foundation/copycat/multistate/IMultiStateCopycatBlockEntity"
+      ],
+      "methods": [
+        {"owner": "com/copycatsplus/copycats/foundation/copycat/ICopycatBlockEntity", "name": "notifyUpdate", "descriptor": "()V"}
+      ]
+    },
+    {
+      "label": "Create Diesel Generators 1.3.14",
+      "path": "libs/optional/createdieselgenerators-1.21.1-1.3.14.jar",
+      "required": false,
+      "classes": [
+        "com/jesz/createdieselgenerators/content/diesel_engine/huge/PoweredEngineShaftBlockEntity"
+      ],
+      "fields": [
+        {"owner": "com/jesz/createdieselgenerators/content/diesel_engine/huge/PoweredEngineShaftBlockEntity", "name": "engines", "descriptor": "Ljava/util/List;"},
+        {"owner": "com/jesz/createdieselgenerators/content/diesel_engine/huge/PoweredEngineShaftBlockEntity", "name": "speed", "descriptor": "F"},
+        {"owner": "com/jesz/createdieselgenerators/content/diesel_engine/huge/PoweredEngineShaftBlockEntity", "name": "movementDirection", "descriptor": "I"}
+      ]
+    },
+    {
+      "label": "HardBlock 1.9",
+      "path": "libs/optional/hardblock-1.9.jar",
+      "required": false,
+      "classes": [
+        "com/example/hardblock/munitions/GuidedMissileEntity"
+      ],
+      "fields": [
+        {"owner": "com/example/hardblock/munitions/GuidedMissileEntity", "name": "pendingDetonationTicks", "descriptor": "I"}
+      ]
+    },
+    {
+      "label": "mianbao ModernWarfare 2.2.0 recurring block ticks",
+      "path": "libs/optional/mianbaos_modernwarfare-2.2.0-neoforge.jar",
+      "required": false,
+      "classes": [
+        "net/mcreator/myfirstmod/block/GrenadecannonBlock",
+        "net/mcreator/myfirstmod/block/MortarBlock",
+        "net/mcreator/myfirstmod/block/AutocannonbreechBlock",
+        "net/mcreator/myfirstmod/block/RotarycannonbreechBlock",
+        "net/mcreator/myfirstmod/block/FlamelauncherBlock"
+      ],
+      "methods": [
+        {"owner": "net/mcreator/myfirstmod/block/GrenadecannonBlock", "name": "onPlace", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V"},
+        {"owner": "net/mcreator/myfirstmod/block/GrenadecannonBlock", "name": "tick", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"},
+        {"owner": "net/mcreator/myfirstmod/block/MortarBlock", "name": "onPlace", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V"},
+        {"owner": "net/mcreator/myfirstmod/block/MortarBlock", "name": "tick", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"},
+        {"owner": "net/mcreator/myfirstmod/block/AutocannonbreechBlock", "name": "onPlace", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V"},
+        {"owner": "net/mcreator/myfirstmod/block/AutocannonbreechBlock", "name": "tick", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"},
+        {"owner": "net/mcreator/myfirstmod/block/RotarycannonbreechBlock", "name": "onPlace", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V"},
+        {"owner": "net/mcreator/myfirstmod/block/RotarycannonbreechBlock", "name": "tick", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"},
+        {"owner": "net/mcreator/myfirstmod/block/FlamelauncherBlock", "name": "onPlace", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)V"},
+        {"owner": "net/mcreator/myfirstmod/block/FlamelauncherBlock", "name": "tick", "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"}
+      ]
+    }
+  ]
+}

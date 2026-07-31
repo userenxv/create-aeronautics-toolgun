@@ -1,0 +1,221 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.141'
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+}
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = uri('https://api.modrinth.com/maven')
+            }
+        }
+        filter {
+            includeGroup 'maven.modrinth'
+        }
+    }
+    maven {
+        name = 'NeoForged Releases'
+        url = uri('https://maven.neoforged.net/releases')
+        metadataSources {
+            gradleMetadata()
+            mavenPom()
+            artifact()
+        }
+    }
+    maven {
+        name = 'MinecraftForge'
+        url = uri('https://maven.minecraftforge.net')
+        metadataSources {
+            gradleMetadata()
+            mavenPom()
+            artifact()
+        }
+    }
+    mavenCentral()
+}
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output',
+                    file('src/generated/resources').getAbsolutePath(),
+                    '--existing', file('src/main/resources').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+configurations {
+    primaryCreate {
+        canBeConsumed = false
+        transitive = false
+    }
+    primarySable {
+        canBeConsumed = false
+        transitive = false
+    }
+    primaryAeronautics {
+        canBeConsumed = false
+        transitive = false
+    }
+    legacySable {
+        canBeConsumed = false
+        transitive = false
+    }
+    legacyAeronautics {
+        canBeConsumed = false
+        transitive = false
+    }
+    sableSchematicApi {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
+def primaryNestedDirectory = layout.buildDirectory.dir('nested-dependencies/primary')
+def legacyNestedDirectory = layout.buildDirectory.dir('nested-dependencies/legacy')
+
+def extractPrimaryNestedDependencies = tasks.register('extractPrimaryNestedDependencies', Sync) {
+    into primaryNestedDirectory
+    from({ configurations.primaryCreate.collect { zipTree(it) } }) {
+        include 'META-INF/jarjar/*.jar'
+        eachFile { details -> details.path = details.name }
+        includeEmptyDirs = false
+    }
+    from({ configurations.primarySable.collect { zipTree(it) } }) {
+        include 'META-INF/jarjar/sable-companion-common-*.jar'
+        eachFile { details -> details.path = details.name }
+        includeEmptyDirs = false
+    }
+}
+
+def extractLegacyNestedDependencies = tasks.register('extractLegacyNestedDependencies', Sync) {
+    into legacyNestedDirectory
+    from({ configurations.legacySable.collect { zipTree(it) } }) {
+        include 'META-INF/jarjar/sable-companion-common-*.jar'
+        eachFile { details -> details.path = details.name }
+        includeEmptyDirs = false
+    }
+}
+
+ext.primaryNestedJars = files({
+    fileTree(primaryNestedDirectory).matching { include '*.jar' }.files
+}).builtBy(extractPrimaryNestedDependencies)
+
+ext.legacyNestedJars = files({
+    fileTree(legacyNestedDirectory).matching { include '*.jar' }.files
+}).builtBy(extractLegacyNestedDependencies)
+
+dependencies {
+    primaryCreate "maven.modrinth:create:6.0.10+mc${minecraft_version}"
+    primarySable 'maven.modrinth:sable:1L6XJqnY'
+    primaryAeronautics "maven.modrinth:create-aeronautics:1.3.0+mc${minecraft_version}"
+    legacySable 'maven.modrinth:sable:g8CObHcP'
+    legacyAeronautics "maven.modrinth:create-aeronautics:1.1.3+mc${minecraft_version}"
+    sableSchematicApi 'maven.modrinth:sable-schematic-tool:0.4.0'
+
+    implementation files(configurations.primaryCreate)
+    implementation files(configurations.primarySable)
+    implementation files(configurations.primaryAeronautics)
+    implementation primaryNestedJars
+    compileOnly files(configurations.sableSchematicApi)
+}
+
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def replaceProperties = [
+            minecraft_version        : minecraft_version,
+            minecraft_version_range  : minecraft_version_range,
+            neo_version              : neo_version,
+            loader_version_range     : loader_version_range,
+            create_version_range     : create_version_range,
+            sable_version_range      : sable_version_range,
+            aeronautics_version_range: aeronautics_version_range,
+            mod_id                   : mod_id,
+            mod_name                 : mod_name,
+            mod_license              : mod_license,
+            mod_version              : mod_version,
+            mod_authors              : mod_authors,
+            mod_description          : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.named('jar', Jar).configure {
+    from('LICENSE') {
+        into ''
+    }
+}
+
+apply from: 'gradle/verification.gradle'
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

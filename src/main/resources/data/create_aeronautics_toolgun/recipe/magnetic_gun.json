@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CSC",
+    "BLB",
+    "PMP"
+  ],
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "S": {
+      "item": "create:electron_tube"
+    },
+    "B": {
+      "item": "create:brass_block"
+    },
+    "L": {
+      "item": "create:rose_quartz"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "M": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "result": {
+    "id": "create_aeronautics_toolgun:magnetic_gun",
+    "count": 1
+  }
+}

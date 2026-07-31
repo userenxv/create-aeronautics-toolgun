@@ -1,0 +1,30 @@
+{
+  "parent": "minecraft:builtin/entity",
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [0, 8.75, 0]
+    },
+    "thirdperson_lefthand": {
+      "translation": [0, 8.5, 0]
+    },
+    "firstperson_righthand": {
+      "translation": [0, 7, 0]
+    },
+    "firstperson_lefthand": {
+      "translation": [0, 7, 0]
+    },
+    "ground": {
+      "translation": [0, 4.5, 0]
+    },
+    "gui": {
+      "rotation": [34, -21, 0],
+      "translation": [0, 3.75, 0]
+    },
+    "fixed": {
+      "translation": [0, 4.5, -5]
+    },
+    "on_shelf": {
+      "rotation": [0, 90, 0]
+    }
+  }
+}
