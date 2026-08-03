@@ -2,15 +2,15 @@ package com.enxv.aeronauticsstructuretool.toolgun.transform;
 
 import com.enxv.aeronauticsstructuretool.RotationAxisMode;
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.ConstraintPoseTransaction;
+import dev.ryanhcode.sable.api.SubLevelHelper;
+import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.server.level.ServerLevel;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.enxv.aeronauticsstructuretool.toolgun.ToolgunTransformValidation.requireFinite;
 
@@ -65,14 +65,31 @@ final class RotationSessionManager {
         if (!confirm) {
             return;
         }
-        ConstraintPoseTransaction.apply(level, session.subLevelId(), subLevel ->
-                SubLevelPoseOperations.rotateAroundLocalPoint(
-                        level,
-                        subLevel,
-                        session.pivotLocalPoint(),
-                        session.pendingLocalRotation()
-                )
-        );
+        ServerSubLevelContainer serverSubLevelContainer = ServerSubLevelContainer.getContainer(level);
+        if (serverSubLevelContainer == null) return;
+        Collection<SubLevel> connectedSubLevels = SubLevelHelper.getConnectedChain(serverSubLevelContainer.getSubLevel(session.subLevelId()));
+        SubLevel selectedSubLevel = (SubLevel) (connectedSubLevels.toArray())[0];
+        Vector3d pivotWorldPoint = selectedSubLevel.logicalPose().transformPosition(session.pivotLocalPoint(), new Vector3d());
+        Quaterniond selectedOrientation = new Quaterniond(selectedSubLevel.logicalPose().orientation());
+        Quaterniond pendingWorldRotation = new Quaterniond(selectedOrientation).mul(session.pendingLocalRotation()).normalize();
+        Quaterniond worldRotationDelta = new Quaterniond(pendingWorldRotation).mul(new Quaterniond(selectedOrientation).conjugate()).normalize();
+        for (SubLevel connectedSubLevel : connectedSubLevels) {
+            UUID subLevelId = connectedSubLevel.getUniqueId();
+            ConstraintPoseTransaction.apply(level, subLevelId, subLevel -> {
+                        Quaterniond currentOrientation = new Quaterniond(subLevel.logicalPose().orientation());
+                        Quaterniond localRotation = new Quaterniond(currentOrientation).conjugate()
+                                .mul(worldRotationDelta)
+                                .mul(currentOrientation)
+                                .normalize();
+                        SubLevelPoseOperations.rotateAroundLocalPoint(
+                                level,
+                                subLevel,
+                                subLevel.logicalPose().transformPositionInverse(pivotWorldPoint, new Vector3d()),
+                                localRotation
+                        );
+                    }
+            );
+        }
     }
 
     static void discardPlayer(UUID playerId) {

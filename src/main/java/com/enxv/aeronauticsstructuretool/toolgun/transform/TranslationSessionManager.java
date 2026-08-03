@@ -2,14 +2,14 @@ package com.enxv.aeronauticsstructuretool.toolgun.transform;
 
 import com.enxv.aeronauticsstructuretool.RotationAxisMode;
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.ConstraintPoseTransaction;
+import dev.ryanhcode.sable.api.SubLevelHelper;
+import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.server.level.ServerLevel;
 import org.joml.Vector3d;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.enxv.aeronauticsstructuretool.toolgun.ToolgunTransformValidation.requireFinite;
 
@@ -64,22 +64,28 @@ final class TranslationSessionManager {
         if (!confirm) {
             return;
         }
+        SubLevelContainer subLevelContainer = SubLevelContainer.getContainer(level);
+        if (subLevelContainer == null) return;
+        Vector3d worldOffset = new Vector3d(session.pendingLocalOffset());
+        Collection<SubLevel> connectedSubLevels = SubLevelHelper.getConnectedChain(subLevelContainer.getSubLevel(session.subLevelId()));
+        ((SubLevel) (connectedSubLevels.toArray())[0]).logicalPose().orientation().transform(worldOffset);
+        for (SubLevel connectedSubLevel : connectedSubLevels) {
+            UUID subLevelId = connectedSubLevel.getUniqueId();
+            ConstraintPoseTransaction.apply(level, subLevelId, subLevel -> {
+                Vector3d currentPivotWorld = subLevel.logicalPose().transformPosition(
+                        new Vector3d(session.pivotLocalPoint()),
+                        new Vector3d()
+                );
 
-        ConstraintPoseTransaction.apply(level, session.subLevelId(), subLevel -> {
-            Vector3d currentPivotWorld = subLevel.logicalPose().transformPosition(
-                    new Vector3d(session.pivotLocalPoint()),
-                    new Vector3d()
-            );
-            Vector3d worldOffset = new Vector3d(session.pendingLocalOffset());
-            subLevel.logicalPose().orientation().transform(worldOffset);
-            Vector3d desiredPivotWorld = currentPivotWorld.add(worldOffset, new Vector3d());
-            SubLevelPoseOperations.movePointToWorld(
-                    level,
-                    subLevel,
-                    session.pivotLocalPoint(),
-                    desiredPivotWorld
-            );
-        });
+                Vector3d desiredPivotWorld = currentPivotWorld.add(worldOffset, new Vector3d());
+                SubLevelPoseOperations.movePointToWorld(
+                        level,
+                        subLevel,
+                        session.pivotLocalPoint(),
+                        desiredPivotWorld
+                );
+            });
+        }
     }
 
     static void teleportToWorldPosition(
@@ -103,12 +109,7 @@ final class TranslationSessionManager {
     }
 
     static void discardDimension(String dimensionId) {
-        Iterator<TranslationSession> iterator = SESSIONS.values().iterator();
-        while (iterator.hasNext()) {
-            if (dimensionId.equals(iterator.next().dimensionId())) {
-                iterator.remove();
-            }
-        }
+        SESSIONS.values().removeIf(translationSession -> dimensionId.equals(translationSession.dimensionId()));
     }
 
     private static TranslationSession requireSession(ServerLevel level, UUID playerId) throws IOException {

@@ -76,6 +76,6 @@ final class PortableStructurePrinterChecklistHelper {
     }
 
     private static int safeCount(long value) {
-        return (int) Math.max(0L, Math.min(Integer.MAX_VALUE, value));
+        return (int) Math.clamp(value, 0L, Integer.MAX_VALUE);
     }
 }
