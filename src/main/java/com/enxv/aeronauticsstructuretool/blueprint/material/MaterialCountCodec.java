@@ -128,7 +128,9 @@ public final class MaterialCountCodec {
             ListTag blockEntities = chunks.getCompound(chunkKey)
                     .getList(BLOCK_ENTITIES_TAG, Tag.TAG_COMPOUND);
             for (int i = 0; i < blockEntities.size(); i++) {
-                scanItems(blockEntities.getCompound(i), itemCounts, 0);
+                CompoundTag blockEntity = blockEntities.getCompound(i);
+                if (blockEntity.getString("id").equals("create:belt")) continue; //已被AdditionalItems存储
+                scanItems(blockEntity, itemCounts, 0);
             }
         }
     }
