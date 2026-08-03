@@ -1,11 +1,12 @@
 package com.enxv.aeronauticsstructuretool.blueprint.model;
 
 import dev.ryanhcode.sable.companion.math.Pose3d;
-import dev.ryanhcode.sable.sublevel.ServerSubLevel;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ public record CapturePlan(
         return null;
     }
 
-    public static CapturePlan create(ServerSubLevel rootSubLevel, List<ServerSubLevel> sublevels) {
+    public static CapturePlan create(SubLevel rootSubLevel, Collection<SubLevel> sublevels) {
         Pose3d rootPose = rootSubLevel.logicalPose();
         Quaterniond rootOrientation = new Quaterniond(rootPose.orientation());
         Quaterniond rootOrientationInverse = new Quaterniond(rootOrientation).conjugate();
@@ -42,7 +43,7 @@ public record CapturePlan(
 
         List<CapturedSubLevel> captured = new ArrayList<>();
         UUID rootBlueprintId = null;
-        for (ServerSubLevel subLevel : sublevels) {
+        for (SubLevel subLevel : sublevels) {
             UUID blueprintId = UUID.randomUUID();
             if (subLevel.equals(rootSubLevel)) {
                 rootBlueprintId = blueprintId;

@@ -1,7 +1,7 @@
 package com.enxv.aeronauticsstructuretool.blueprint.geometry;
 
 import dev.ryanhcode.sable.companion.math.BoundingBox3i;
-import dev.ryanhcode.sable.sublevel.ServerSubLevel;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.ryanhcode.sable.sublevel.plot.ServerLevelPlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -27,8 +27,8 @@ public final class PlotBlockTransform {
         this.plotChunkMax = plotChunkMax;
     }
 
-    public static PlotBlockTransform capture(ServerSubLevel subLevel) {
-        ServerLevelPlot plot = subLevel.getPlot();
+    public static PlotBlockTransform capture(SubLevel subLevel) {
+        ServerLevelPlot plot = (ServerLevelPlot) subLevel.getPlot();
         return new PlotBlockTransform(plot, plot.getChunkMin(), plot.getChunkMax());
     }
 

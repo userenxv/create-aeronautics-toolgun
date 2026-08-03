@@ -5,7 +5,7 @@ import com.enxv.aeronauticsstructuretool.compat.simulated.SimulatedRopeRemovalBr
 import com.enxv.aeronauticsstructuretool.server.ServerServices;
 
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
-import dev.ryanhcode.sable.sublevel.ServerSubLevel;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.ryanhcode.sable.sublevel.storage.SubLevelRemovalReason;
 import net.minecraft.server.level.ServerLevel;
 
@@ -21,10 +21,10 @@ public final class SubLevelRemovalCoordinator {
     public static void remove(
             ServerLevel level,
             ServerSubLevelContainer container,
-            Collection<ServerSubLevel> targets
+            Collection<SubLevel> targets
     ) {
-        Set<ServerSubLevel> existing = new LinkedHashSet<>();
-        for (ServerSubLevel target : targets) {
+        Set<SubLevel> existing = new LinkedHashSet<>();
+        for (SubLevel target : targets) {
             if (target != null && container.getSubLevel(target.getUniqueId()) == target) {
                 existing.add(target);
             }
@@ -34,13 +34,13 @@ public final class SubLevelRemovalCoordinator {
         }
 
         Set<UUID> subLevelIds = new LinkedHashSet<>();
-        for (ServerSubLevel target : existing) {
+        for (SubLevel target : existing) {
             subLevelIds.add(target.getUniqueId());
         }
         SimulatedRopeRemovalBridge.removeForSubLevels(level, subLevelIds);
         ServerServices.DRIVEBYWIRE_SUBLEVEL_LIFECYCLE.beforeRemoval(level, subLevelIds);
 
-        for (ServerSubLevel target : existing) {
+        for (SubLevel target : existing) {
             ToolgunConstraintTracker.removeConstraintsForSubLevel(level, target.getUniqueId());
             container.removeSubLevel(target, SubLevelRemovalReason.REMOVED);
         }
