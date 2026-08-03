@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public final class MaterialCountCodec {
     private static final String ENTRY_ID_TAG = "id";
@@ -169,13 +168,13 @@ public final class MaterialCountCodec {
             addItemIfPresent(compound, itemCounts);
             for (String key : compound.getAllKeys()) {
                 switch (key) {
-                    case "FrequencyFirst", "FrequencyLast": continue;
+                    case "FrequencyFirst", "FrequencyLast", "Filter": continue;
                 }
                 scanItems(compound.get(key), itemCounts, depth + 1);
             }
         } else if (tag instanceof ListTag listTag) {
-            for (int i = 0; i < listTag.size(); i++) {
-                scanItems(listTag.get(i), itemCounts, depth + 1);
+            for (Tag value : listTag) {
+                scanItems(value, itemCounts, depth + 1);
             }
         }
     }
