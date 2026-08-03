@@ -67,12 +67,15 @@ final class RotationSessionManager {
         }
         ServerSubLevelContainer serverSubLevelContainer = ServerSubLevelContainer.getContainer(level);
         if (serverSubLevelContainer == null) return;
-        Collection<SubLevel> connectedSubLevels = SubLevelHelper.getConnectedChain(serverSubLevelContainer.getSubLevel(session.subLevelId()));
-        SubLevel selectedSubLevel = (SubLevel) (connectedSubLevels.toArray())[0];
+        SubLevel selectedSubLevel = serverSubLevelContainer.getSubLevel(session.subLevelId());
+        if (selectedSubLevel == null) return;
+        Collection<SubLevel> connectedSubLevels = SubLevelHelper.getConnectedChain(selectedSubLevel);
+
         Vector3d pivotWorldPoint = selectedSubLevel.logicalPose().transformPosition(session.pivotLocalPoint(), new Vector3d());
         Quaterniond selectedOrientation = new Quaterniond(selectedSubLevel.logicalPose().orientation());
         Quaterniond pendingWorldRotation = new Quaterniond(selectedOrientation).mul(session.pendingLocalRotation()).normalize();
         Quaterniond worldRotationDelta = new Quaterniond(pendingWorldRotation).mul(new Quaterniond(selectedOrientation).conjugate()).normalize();
+
         for (SubLevel connectedSubLevel : connectedSubLevels) {
             UUID subLevelId = connectedSubLevel.getUniqueId();
             ConstraintPoseTransaction.apply(level, subLevelId, subLevel -> {
