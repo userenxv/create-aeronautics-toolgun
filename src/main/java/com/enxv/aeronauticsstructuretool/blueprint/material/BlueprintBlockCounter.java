@@ -3,6 +3,8 @@ package com.enxv.aeronauticsstructuretool.blueprint.material;
 import com.enxv.aeronauticsstructuretool.RuntimeContraptionBlueprint;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.PlotBlockDataReader;
 import com.enxv.aeronauticsstructuretool.blueprint.runtime.RuntimeContraptionCodec;
+import com.simibubi.create.content.kinetics.belt.BeltBlock;
+import com.simibubi.create.content.kinetics.belt.BeltPart;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -27,6 +29,12 @@ final class BlueprintBlockCounter {
     ) throws IOException {
         for (PlotBlockDataReader.PlotBlock block : PlotBlockDataReader.read(plotTag, sourceMinBuildHeight)) {
             ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block.state().getBlock());
+            if (id.getNamespace().equals("create") && id.getPath().equals("belt")) {
+                switch (block.state().getValue(BeltBlock.PART)) {
+                    case END, START, PULLEY : mergeBlock("create:shaft", blockCounts, "plot block " + block.blockPos().toShortString());
+                }
+                if (block.state().getValue(BeltBlock.PART) != BeltPart.START) continue;
+            }
             mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
         }
     }

@@ -128,7 +128,9 @@ public final class MaterialCountCodec {
             ListTag blockEntities = chunks.getCompound(chunkKey)
                     .getList(BLOCK_ENTITIES_TAG, Tag.TAG_COMPOUND);
             for (int i = 0; i < blockEntities.size(); i++) {
-                scanItems(blockEntities.getCompound(i), itemCounts, 0);
+                CompoundTag blockEntity = blockEntities.getCompound(i);
+                if (blockEntity.getString("id").equals("create:belt")) continue; //已被AdditionalItems存储
+                scanItems(blockEntity, itemCounts, 0);
             }
         }
     }
@@ -167,11 +169,14 @@ public final class MaterialCountCodec {
         if (tag instanceof CompoundTag compound) {
             addItemIfPresent(compound, itemCounts);
             for (String key : compound.getAllKeys()) {
+                switch (key) {
+                    case "FrequencyFirst", "FrequencyLast", "Filter": continue;
+                }
                 scanItems(compound.get(key), itemCounts, depth + 1);
             }
         } else if (tag instanceof ListTag listTag) {
-            for (int i = 0; i < listTag.size(); i++) {
-                scanItems(listTag.get(i), itemCounts, depth + 1);
+            for (Tag value : listTag) {
+                scanItems(value, itemCounts, depth + 1);
             }
         }
     }

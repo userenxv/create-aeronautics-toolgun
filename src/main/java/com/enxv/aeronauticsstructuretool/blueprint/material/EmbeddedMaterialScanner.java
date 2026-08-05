@@ -118,8 +118,8 @@ final class EmbeddedMaterialScanner {
                 scanEmbeddedMaterials(compound.get(key), blockCounts, itemCounts, depth + 1, key);
             }
         } else if (tag instanceof ListTag listTag) {
-            for (int i = 0; i < listTag.size(); i++) {
-                scanEmbeddedMaterials(listTag.get(i), blockCounts, itemCounts, depth + 1, pathKey);
+            for (Tag tag1 : listTag) {
+                scanEmbeddedMaterials(tag1, blockCounts, itemCounts, depth + 1, pathKey);
             }
         }
     }

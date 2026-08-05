@@ -42,7 +42,7 @@ ordering="AFTER"
 side="BOTH"
 
 [[dependencies.${mod_id}]]
-modId="aeronautics_bundled"
+modId="simulated"
 type="required"
 versionRange="${aeronautics_version_range}"
 ordering="AFTER"

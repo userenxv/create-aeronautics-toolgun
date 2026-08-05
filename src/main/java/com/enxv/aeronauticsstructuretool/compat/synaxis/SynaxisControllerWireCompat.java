@@ -7,7 +7,6 @@ import com.enxv.aeronauticsstructuretool.blueprint.model.CapturePlan;
 import com.enxv.aeronauticsstructuretool.blueprint.model.CapturedSubLevel;
 import com.enxv.aeronauticsstructuretool.blueprint.model.LoadedSubLevel;
 import dev.ryanhcode.sable.Sable;
-import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,7 +36,7 @@ public final class SynaxisControllerWireCompat {
             ServerLevel level,
             CompoundTag plotTag,
             CapturePlan plan,
-            ServerSubLevel currentSubLevel
+            SubLevel currentSubLevel
     ) throws IOException {
         if (!SynaxisReflection.isInstalled()) {
             return;
