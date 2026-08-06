@@ -13,12 +13,10 @@ import dev.rew1nd.sableschematicapi.api.blueprint.SubLevelSaveFrame;
 import dev.ryanhcode.sable.companion.math.BoundingBox3d;
 import dev.ryanhcode.sable.companion.math.BoundingBox3i;
 import dev.ryanhcode.sable.companion.math.Pose3d;
-import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import org.joml.Vector3d;
 
 import java.util.HashMap;
@@ -62,10 +60,10 @@ final class SableBlueprintApiCompatImpl {
 
         Vector3d rootOrigin = new Vector3d();
         if (!plan.sublevels().isEmpty()) {
-            rootOrigin.set(plan.sublevels().getFirst().subLevel().logicalPose().position());
+            rootOrigin.set(plan.sublevels().get(0).subLevel().logicalPose().position());
         }
         BlueprintSaveSession session = new BlueprintSaveSession(
-                (ServerLevel) plan.sublevels().getFirst().subLevel().getLevel(),
+                plan.sublevels().get(0).subLevel().getLevel(),
                 rootOrigin,
                 new BoundingBox3d(aggregateBounds)
         );
@@ -77,7 +75,7 @@ final class SableBlueprintApiCompatImpl {
             session.addFrame(new SubLevelSaveFrame(
                     sableId,
                     captured.subLevel().getUniqueId(),
-                    (ServerSubLevel) captured.subLevel(),
+                    captured.subLevel(),
                     bounds,
                     blocksOrigin,
                     new Pose3d(captured.subLevel().logicalPose())

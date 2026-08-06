@@ -145,7 +145,7 @@ public final class PortableStructureContainerItem extends Item {
 
         String blueprintName = resolveBlueprintName(containing);
         ConnectedStructureSnapshot snapshot = containing instanceof dev.ryanhcode.sable.sublevel.ServerSubLevel serverSubLevel
-                ? ConnectedStructureSnapshotService.capture(serverSubLevel)
+                ? ConnectedStructureSnapshotService.capture(level, serverSubLevel)
                 : null;
         CapturedBlueprintArchive saved = NativeBlueprintCaptureService.captureAtBlock(
                 level,
@@ -173,7 +173,8 @@ public final class PortableStructureContainerItem extends Item {
         }
         ConnectedStructureRemovalService.removeAt(
                 level,
-                clickedPos
+                clickedPos,
+                NativeBlueprintCaptureService.DEFAULT_CONNECTED_SUBLEVEL_PROXIMITY_BLOCKS
         );
         if (this.repairIntegration && context.getPlayer() instanceof ServerPlayer serverPlayer) {
             if (snapshot != null) {
@@ -249,14 +250,23 @@ public final class PortableStructureContainerItem extends Item {
         );
         if (this.repairIntegration && context.getPlayer() instanceof ServerPlayer serverPlayer) {
             BlockPos placedPos = context.getClickedPos().relative(face);
-            PortableContainerAuditLogger.logPlace(serverPlayer, snapshot.rootStructureId(), snapshot.structureCount(), snapshot.totalMass());
+            if (snapshot != null) {
+                PortableContainerAuditLogger.logPlace(serverPlayer, snapshot.rootStructureId(), snapshot.structureCount(), snapshot.totalMass());
+            } else {
+                PortableContainerAuditLogger.logPlace(
+                        serverPlayer,
+                        null,
+                        PortableContainerStorage.countStoredStructures(storedBlueprint),
+                        -1.0D
+                );
+            }
             PortableContainerStorage.rememberPlacedRepairTracking(stack, storedBlueprint, snapshot);
             String repairVehicleId = PortableContainerStorage.readBlueprintRepairVehicleId(storedBlueprint);
             PortableContainerStorage.rememberRepairVehicleId(level, snapshot, repairVehicleId);
             AeronauticsStructureToolMod.LOGGER.info(
                     "Portable container place repair-id tracking: placedPos={} rootStructureId={} blueprintRepairId='{}' itemRepairId='{}'",
                     placedPos,
-                    snapshot.rootStructureId(),
+                    snapshot != null ? snapshot.rootStructureId() : null,
                     repairVehicleId,
                     PortableContainerStorage.readItemRepairVehicleId(stack)
             );

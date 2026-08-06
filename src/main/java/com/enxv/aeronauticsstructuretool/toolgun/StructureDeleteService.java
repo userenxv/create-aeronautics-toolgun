@@ -39,9 +39,9 @@ public final class StructureDeleteService {
         );
     }
 
-    private static List<SubLevel> resolveTargets(
-            SubLevelContainer container,
-            SubLevel root,
+    private static List<ServerSubLevel> resolveTargets(
+            ServerSubLevelContainer container,
+            ServerSubLevel root,
             boolean rangeDeleteEnabled,
             int deleteRange
     ) {
@@ -49,10 +49,10 @@ public final class StructureDeleteService {
             return List.of(root);
         }
 
-        Set<SubLevel> targets = new LinkedHashSet<>();
+        Set<ServerSubLevel> targets = new LinkedHashSet<>();
         targets.add(root);
         BoundingBox rootBounds = toMinecraftBounds(root);
-        for (SubLevel candidate : container.getAllSubLevels()) {
+        for (ServerSubLevel candidate : container.getAllSubLevels()) {
             if (candidate == null || candidate.equals(root)) {
                 continue;
             }
@@ -71,7 +71,7 @@ public final class StructureDeleteService {
         return container;
     }
 
-    private static BoundingBox toMinecraftBounds(SubLevel subLevel) {
+    private static BoundingBox toMinecraftBounds(ServerSubLevel subLevel) {
         BoundingBox3i bounds = new BoundingBox3i(new BoundingBox3d(subLevel.boundingBox()));
         return new BoundingBox(
                 bounds.minX(),

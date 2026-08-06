@@ -10,7 +10,7 @@ import com.enxv.aeronauticsstructuretool.toolgun.constraint.persistence.Constrai
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.persistence.ConstraintRestoreResult;
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.ConstraintRuntimeRepository;
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.ConstraintVisualSnapshotService;
-import dev.ryanhcode.sable.sublevel.SubLevel;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 
@@ -41,7 +41,7 @@ public final class ToolgunConstraintTracker {
 
     public static ListTag writeConstraintsForSave(
             CapturePlan plan,
-            Collection<SubLevel> includedSublevels
+            Collection<ServerSubLevel> includedSublevels
     ) {
         return ConstraintBlueprintService.write(plan, includedSublevels);
     }
