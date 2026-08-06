@@ -151,7 +151,7 @@ public final class PortableStructureContainerItem extends Item {
                 level,
                 clickedPos,
                 blueprintName,
-                NativeBlueprintCaptureService.DEFAULT_CONNECTED_SUBLEVEL_PROXIMITY_BLOCKS
+                -1
         );
         byte[] normalizedBlueprint = PortableContainerStorage.prepareCapturedBlueprint(
                 level,
@@ -174,7 +174,7 @@ public final class PortableStructureContainerItem extends Item {
         ConnectedStructureRemovalService.removeAt(
                 level,
                 clickedPos,
-                NativeBlueprintCaptureService.DEFAULT_CONNECTED_SUBLEVEL_PROXIMITY_BLOCKS
+                -1
         );
         if (this.repairIntegration && context.getPlayer() instanceof ServerPlayer serverPlayer) {
             if (snapshot != null) {

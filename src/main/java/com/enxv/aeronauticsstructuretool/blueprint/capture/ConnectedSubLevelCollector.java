@@ -30,13 +30,16 @@ public final class ConnectedSubLevelCollector {
     private ConnectedSubLevelCollector() {
     }
 
+    /**
+     * @return the list of connected sub-levels
+     */
     public static List<ServerSubLevel> collect(
             ServerLevel level,
             ServerSubLevel rootSubLevel,
             double maximumNeighborGap
     ) throws IOException {
-        if (!Double.isFinite(maximumNeighborGap) || maximumNeighborGap < 0.0D) {
-            throw new IOException("connected sublevel proximity must be a finite non-negative value");
+        if (!Double.isFinite(maximumNeighborGap)) {
+            throw new IOException("connected sublevel proximity must be a finite value");
         }
         ServerSubLevelContainer container = SubLevelContainer.getContainer(level);
         if (container == null) {
@@ -65,7 +68,7 @@ public final class ConnectedSubLevelCollector {
             ServerSubLevel current = queue.remove();
             enqueueNew(findToolgunConnections(current, allSublevels), discovered, queue, queued);
             enqueueNew(findDeclaredConnections(level, current), discovered, queue, queued);
-            enqueueNew(findNeighbors(current, allSublevels, maximumNeighborGap), discovered, queue, queued);
+            if (maximumNeighborGap >= 0.0D) enqueueNew(findNeighbors(current, allSublevels, maximumNeighborGap), discovered, queue, queued);
         }
         return new ArrayList<>(discovered);
     }
