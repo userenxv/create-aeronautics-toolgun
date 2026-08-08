@@ -28,7 +28,6 @@ import com.enxv.aeronauticsstructuretool.compat.simulated.SimulatedGlueBlueprint
 import com.enxv.aeronauticsstructuretool.compat.synaxis.SynaxisCaptureSession;
 
 import dev.ryanhcode.sable.Sable;
-import dev.ryanhcode.sable.api.SubLevelHelper;
 import dev.ryanhcode.sable.api.schematic.SubLevelSchematicSerializationContext;
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
@@ -45,7 +44,10 @@ import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public final class NativeBlueprintCaptureService {
     public static final double DEFAULT_CONNECTED_SUBLEVEL_PROXIMITY_BLOCKS = 0.5D;
@@ -63,7 +65,7 @@ public final class NativeBlueprintCaptureService {
         if (!(containing instanceof ServerSubLevel rootSubLevel)) {
             throw new IOException("not a physical structure");
         }
-        return capture(level, rootSubLevel, rawName, true);
+        return capture(level, rootSubLevel, rawName, connectedSublevelProximityBlocks, true);
     }
 
     public static CapturedBlueprintArchive captureById(
@@ -76,6 +78,7 @@ public final class NativeBlueprintCaptureService {
                 level,
                 requireSubLevel(level, rootStructureId),
                 rawName,
+                connectedSublevelProximityBlocks,
                 true
         );
     }
@@ -89,6 +92,7 @@ public final class NativeBlueprintCaptureService {
                 level,
                 requireSubLevel(level, rootStructureId),
                 rawName,
+                DEFAULT_CONNECTED_SUBLEVEL_PROXIMITY_BLOCKS,
                 false
         );
     }
@@ -126,6 +130,7 @@ public final class NativeBlueprintCaptureService {
             ServerLevel level,
             ServerSubLevel rootSubLevel,
             String rawName,
+            double connectedSublevelProximityBlocks,
             boolean logSummary
     ) throws IOException {
         String safeName = BlueprintFileRepository.normalizeName(rawName);
@@ -133,7 +138,11 @@ public final class NativeBlueprintCaptureService {
             throw new IOException("empty name");
         }
 
-        Collection<SubLevel> collectedSubLevels = SubLevelHelper.getConnectedChain(rootSubLevel);
+        List<ServerSubLevel> collectedSubLevels = ConnectedSubLevelCollector.collect(
+                level,
+                rootSubLevel,
+                connectedSublevelProximityBlocks
+        );
         if (collectedSubLevels.isEmpty()) {
             throw new IOException("no connected sublevels found");
         }
@@ -171,7 +180,7 @@ public final class NativeBlueprintCaptureService {
             CompoundTag plotTag;
             try {
                 SubLevelSchematicSerializationContext.setCurrentContext(context);
-                plotTag = ((ServerSubLevel) captured.subLevel()).getPlot().save();
+                plotTag = captured.subLevel().getPlot().save();
             } finally {
                 SubLevelSchematicSerializationContext.setCurrentContext(null);
             }
@@ -215,7 +224,7 @@ public final class NativeBlueprintCaptureService {
                         BlueprintMaterialSummary.writeItemCounts(additionalMaterialItems)
                 );
             }
-            if (SubLevelCollisionToggleManager.isCollisionDisabled((ServerSubLevel) captured.subLevel())) {
+            if (SubLevelCollisionToggleManager.isCollisionDisabled(captured.subLevel())) {
                 sublevelTag.putBoolean(NativeBlueprintFormat.DISABLE_STRUCTURE_COLLISION_TAG, true);
             }
             sublevelTag.put(

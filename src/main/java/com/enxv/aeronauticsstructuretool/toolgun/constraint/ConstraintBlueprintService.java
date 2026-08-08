@@ -9,7 +9,7 @@ import com.enxv.aeronauticsstructuretool.blueprint.model.CapturePlan;
 import com.enxv.aeronauticsstructuretool.blueprint.model.CapturedSubLevel;
 import com.enxv.aeronauticsstructuretool.blueprint.model.LoadedSubLevel;
 import com.enxv.aeronauticsstructuretool.core.FailureMessages;
-import dev.ryanhcode.sable.sublevel.SubLevel;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -37,11 +37,11 @@ public final class ConstraintBlueprintService {
 
     public static ListTag write(
             CapturePlan plan,
-            Collection<SubLevel> includedSublevels
+            Collection<ServerSubLevel> includedSublevels
     ) {
         ConstraintRuntimeRepository.cleanupInvalid();
         Map<UUID, UUID> blueprintIds = new LinkedHashMap<>();
-        for (SubLevel subLevel : includedSublevels) {
+        for (ServerSubLevel subLevel : includedSublevels) {
             CapturedSubLevel captured = plan.findByOriginalId(subLevel.getUniqueId());
             if (captured != null) {
                 blueprintIds.put(subLevel.getUniqueId(), captured.blueprintId());
@@ -191,7 +191,7 @@ public final class ConstraintBlueprintService {
                 readConnectionMode(tag),
                 constraintId
         );
-        if (restored.handle() == null) {
+        if (restored == null || restored.handle() == null) {
             throw new IOException("Constraint restoration produced no valid physics handle");
         }
         registrar.accept(restored);

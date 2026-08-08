@@ -2,7 +2,7 @@ package com.enxv.aeronauticsstructuretool.compat.drivebywire;
 
 import com.enxv.aeronauticsstructuretool.AeronauticsStructureToolMod;
 import dev.ryanhcode.sable.api.schematic.SubLevelSchematicSerializationContext;
-import dev.ryanhcode.sable.sublevel.SubLevel;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -21,7 +21,7 @@ public final class DriveByWireCaptureSession {
 
     public CompoundTag captureSnapshot(
             ServerLevel level,
-            SubLevel subLevel,
+            ServerSubLevel subLevel,
             SubLevelSchematicSerializationContext context
     ) throws IOException {
         // Sable plot centers are already absolute positions in the plot storage space.

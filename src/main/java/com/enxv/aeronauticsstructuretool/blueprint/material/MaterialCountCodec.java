@@ -170,7 +170,19 @@ public final class MaterialCountCodec {
             addItemIfPresent(compound, itemCounts);
             for (String key : compound.getAllKeys()) {
                 switch (key) {
-                    case "FrequencyFirst", "FrequencyLast", "Filter": continue;
+                    case "FrequencyFirst", "FrequencyLast": continue;
+                    case "Filter": {
+                        CompoundTag item = compound.getCompound(key);
+                        switch (item.getString("id")) {
+                            case "create:filter",
+                                 "create:attribute:filter",
+                                 "create:package_filter",
+                                 "createdieselgenerators:entity_filter": {
+                                addItemIfPresent(item, itemCounts);
+                                continue;
+                            }
+                        }
+                    }
                 }
                 scanItems(compound.get(key), itemCounts, depth + 1);
             }
