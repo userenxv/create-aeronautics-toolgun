@@ -10,6 +10,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.TallFlowerBlock;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,11 +34,22 @@ final class BlueprintBlockCounter {
     ) throws IOException {
         for (PlotBlockDataReader.PlotBlock block : PlotBlockDataReader.read(plotTag, sourceMinBuildHeight)) {
             ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block.state().getBlock());
-            if (id.getNamespace().equals("create") && id.getPath().equals("belt")) {
-                switch (block.state().getValue(BeltBlock.PART)) {
-                    case END, START, PULLEY : mergeBlock("create:shaft", blockCounts, "plot block " + block.blockPos().toShortString());
+            String nameSpace = id.getNamespace();
+            String path = id.getPath();
+            String fullName = nameSpace.concat(":").concat(path);
+            switch (fullName) {
+                case "create:belt": {
+                    switch (block.state().getValue(BeltBlock.PART)) {
+                        case END, START, PULLEY : mergeBlock("create:shaft", blockCounts, "plot block " + block.blockPos().toShortString());
+                        break;
+                    }
+                    if (block.state().getValue(BeltBlock.PART) != BeltPart.START) continue;
                 }
-                if (block.state().getValue(BeltBlock.PART) != BeltPart.START) continue;
+                //case "create_connected:kinetic_bridge_destination": continue;
+                case "minecraft:large_fern", "minecraft:rose_bush", "minecraft:lilac", "minecraft:pitcher_plant", "minecraft:peony", "minecraft:tall_grass": {
+                    if (block.state().getValue(TallFlowerBlock.HALF) == DoubleBlockHalf.UPPER) continue;
+                }
+                default: if (fullName.contains("bed") && block.state().getValue(BedBlock.PART) == BedPart.FOOT) continue;
             }
             mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
         }
