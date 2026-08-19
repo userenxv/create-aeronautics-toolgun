@@ -37,12 +37,12 @@ public final class CompatibilitySymbolCheck {
         int verifiedArtifacts = 0;
 
         for (Artifact artifact : manifest.artifacts()) {
-            Path jar = projectRoot.resolve(artifact.path()).normalize();
-            if (!jar.startsWith(projectRoot)) {
+            Path artifactPath = projectRoot.resolve(artifact.path()).normalize();
+            if (!artifactPath.startsWith(projectRoot)) {
                 failures.add(artifact.label() + ": artifact path escapes the project root");
                 continue;
             }
-            if (!Files.isRegularFile(jar)) {
+            if (!Files.isRegularFile(artifactPath) && !Files.isDirectory(artifactPath)) {
                 if (artifact.required()) {
                     failures.add(artifact.label() + ": missing artifact " + artifact.path());
                 } else {
@@ -51,7 +51,7 @@ public final class CompatibilitySymbolCheck {
                 continue;
             }
 
-            ClassIndex index = ClassIndex.read(jar);
+            ClassIndex index = ClassIndex.read(artifactPath);
             int requirementCount = verifyArtifact(artifact, index, failures);
             verifiedArtifacts++;
             System.out.println(
@@ -163,12 +163,27 @@ public final class CompatibilitySymbolCheck {
     private static final class ClassIndex {
         private final Map<String, ClassInfo> classes = new LinkedHashMap<>();
 
-        static ClassIndex read(Path jar) throws IOException {
+        static ClassIndex read(Path artifact) throws IOException {
             ClassIndex index = new ClassIndex();
-            try (InputStream input = Files.newInputStream(jar)) {
-                index.readArchive(input, 0, jar.toString());
+            if (Files.isDirectory(artifact)) {
+                try (var entries = Files.list(artifact)) {
+                    for (Path jar : entries
+                            .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".jar"))
+                            .sorted()
+                            .toList()) {
+                        index.readJar(jar);
+                    }
+                }
+            } else {
+                index.readJar(artifact);
             }
             return index;
+        }
+
+        private void readJar(Path jar) throws IOException {
+            try (InputStream input = Files.newInputStream(jar)) {
+                readArchive(input, 0, jar.toString());
+            }
         }
 
         int size() {

@@ -28,11 +28,20 @@ public final class QueryVehicleTeleportScreen extends Screen {
     private final double initialX;
     private final double initialY;
     private final double initialZ;
+    private final boolean vehicleLoaded;
     private EditBox xBox;
     private EditBox yBox;
     private EditBox zBox;
 
-    public QueryVehicleTeleportScreen(Screen parent, UUID subLevelId, String displayName, double initialX, double initialY, double initialZ) {
+    public QueryVehicleTeleportScreen(
+            Screen parent,
+            UUID subLevelId,
+            String displayName,
+            double initialX,
+            double initialY,
+            double initialZ,
+            boolean vehicleLoaded
+    ) {
         super(Component.translatable("screen.create_aeronautics_toolgun.query.teleport_title"));
         this.parent = parent;
         this.subLevelId = subLevelId;
@@ -40,6 +49,7 @@ public final class QueryVehicleTeleportScreen extends Screen {
         this.initialX = initialX;
         this.initialY = initialY;
         this.initialZ = initialZ;
+        this.vehicleLoaded = vehicleLoaded;
     }
 
     @Override
@@ -51,14 +61,20 @@ public final class QueryVehicleTeleportScreen extends Screen {
         this.xBox = createCoordinateBox(left + 82, top + 48, 210, this.initialX, "X");
         this.yBox = createCoordinateBox(left + 82, top + 76, 210, this.initialY, "Y");
         this.zBox = createCoordinateBox(left + 82, top + 104, 210, this.initialZ, "Z");
+        this.xBox.setEditable(this.vehicleLoaded);
+        this.yBox.setEditable(this.vehicleLoaded);
+        this.zBox.setEditable(this.vehicleLoaded);
         this.addRenderableWidget(this.xBox);
         this.addRenderableWidget(this.yBox);
         this.addRenderableWidget(this.zBox);
-        this.xBox.setFocused(true);
-        this.setInitialFocus(this.xBox);
+        if (this.vehicleLoaded) {
+            this.xBox.setFocused(true);
+            this.setInitialFocus(this.xBox);
+        }
 
         this.addRenderableWidget(new PanelButton(left + 18, top + 138, 284, 20, Component.translatable("screen.create_aeronautics_toolgun.query.teleport_player_to_vehicle"), button -> teleportPlayerToVehicle()));
-        this.addRenderableWidget(new PanelButton(left + 18, top + 166, 136, 20, Component.translatable("screen.create_aeronautics_toolgun.confirm"), button -> confirm()));
+        Button confirmButton = this.addRenderableWidget(new PanelButton(left + 18, top + 166, 136, 20, Component.translatable("screen.create_aeronautics_toolgun.confirm"), button -> confirm()));
+        confirmButton.active = this.vehicleLoaded;
         this.addRenderableWidget(new PanelButton(left + 166, top + 166, 136, 20, Component.translatable("screen.create_aeronautics_toolgun.cancel"), button -> this.onClose()));
     }
 
@@ -74,6 +90,10 @@ public final class QueryVehicleTeleportScreen extends Screen {
     }
 
     private void confirm() {
+        if (!this.vehicleLoaded) {
+            showClientMessage(Component.translatable("screen.create_aeronautics_toolgun.query.teleport_unloaded_hint"));
+            return;
+        }
         Double x = parseCoordinate(this.xBox.getValue(), this.minecraft != null && this.minecraft.player != null ? this.minecraft.player.getX() : null);
         Double y = parseCoordinate(this.yBox.getValue(), this.minecraft != null && this.minecraft.player != null ? this.minecraft.player.getY() : null);
         Double z = parseCoordinate(this.zBox.getValue(), this.minecraft != null && this.minecraft.player != null ? this.minecraft.player.getZ() : null);
@@ -138,7 +158,16 @@ public final class QueryVehicleTeleportScreen extends Screen {
         guiGraphics.drawString(this.font, "X", left + 30, top + 53, BRASS, false);
         guiGraphics.drawString(this.font, "Y", left + 30, top + 81, BRASS, false);
         guiGraphics.drawString(this.font, "Z", left + 30, top + 109, BRASS, false);
-        guiGraphics.drawString(this.font, Component.translatable("screen.create_aeronautics_toolgun.query.teleport_blank_player_hint"), left + 18, top + 126, TEXT_MUTED, false);
+        guiGraphics.drawString(
+                this.font,
+                Component.translatable(this.vehicleLoaded
+                        ? "screen.create_aeronautics_toolgun.query.teleport_blank_player_hint"
+                        : "screen.create_aeronautics_toolgun.query.teleport_unloaded_hint"),
+                left + 18,
+                top + 126,
+                TEXT_MUTED,
+                false
+        );
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 

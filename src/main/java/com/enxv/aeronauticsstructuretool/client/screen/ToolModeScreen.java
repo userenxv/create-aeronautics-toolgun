@@ -713,7 +713,8 @@ public final class ToolModeScreen extends Screen {
                 selected.fullName(),
                 selected.position().getX(),
                 selected.position().getY(),
-                selected.position().getZ()
+                selected.position().getZ(),
+                selected.loaded()
         ));
     }
 

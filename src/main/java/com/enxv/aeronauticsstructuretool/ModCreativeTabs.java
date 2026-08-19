@@ -16,7 +16,7 @@ public final class ModCreativeTabs {
             "main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.create_aeronautics_toolgun.main"))
-                    .icon(() -> new ItemStack(ModItems.STRUCTURE_TOOL.get()))
+                    .icon(() -> new ItemStack(ModItems.MAGNETIC_GUN.get()))
                     .displayItems((parameters, output) -> {
                         output.accept(ModItems.STRUCTURE_TOOL.get());
                         output.accept(ModItems.SURVIVAL_STRUCTURE_TOOL.get());

@@ -20,6 +20,7 @@ public final class PortableStructurePrinterService {
     private static final int BLOCKS_PER_SECOND = 5;
     private static final int EMIT_INTERVAL_TICKS = 20 / BLOCKS_PER_SECOND;
     private static final int EFFECT_TRAVEL_TICKS = 12;
+    private static final int PROGRESS_SYNC_INTERVAL_BLOCKS = 5;
 
     private PortableStructurePrinterService() {
     }
@@ -267,7 +268,12 @@ public final class PortableStructurePrinterService {
                 for (ServerPlayer player : level.players()) {
                     if (player.blockPosition().closerThan(pos, 64.0D)) {
                         PacketDistributor.sendToPlayer(player, payload);
-                        syncState(player, printer);
+                        int emitted = printer.emittedPrintBlocks();
+                        if (emitted == 1
+                                || emitted >= printer.totalPrintBlocks()
+                                || emitted % PROGRESS_SYNC_INTERVAL_BLOCKS == 0) {
+                            syncState(player, printer);
+                        }
                     }
                 }
             }

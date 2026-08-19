@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,17 @@ public final class VehicleQueryService {
     private static final long RESULT_CACHE_TTL_MS = 1000L;
     private static final int INFINITE_QUERY_RANGE = 0;
     private static final int SURVIVAL_DEFAULT_QUERY_RANGE = 64;
+    // This cache only coalesces duplicate requests arriving in the same UI
+    // interaction; it is intentionally too short to hide normal edits.
+    private static final long PREVIEW_CACHE_TTL_MS = 250L;
+    private static final int PREVIEW_CACHE_MAX_ENTRIES = 8;
+    private static final int PREVIEW_CACHE_MAX_BYTES = 4 * 1024 * 1024;
     private static final Map<QueryResultCacheKey, QueryResultCache> RESULT_CACHE = new HashMap<>();
+    private static final Map<PreviewCacheKey, PreviewCacheEntry> PREVIEW_CACHE = new LinkedHashMap<>(
+            16,
+            0.75F,
+            true
+    );
 
     private VehicleQueryService() {
     }
@@ -116,7 +127,12 @@ public final class VehicleQueryService {
         SubLevel subLevel = container.getSubLevel(subLevelId);
         if (subLevel instanceof ServerSubLevel serverSubLevel) {
             String name = resolveLoadedName(serverSubLevel);
-            return new VehiclePreview(
+            PreviewCacheKey key = new PreviewCacheKey(level.dimension().location().toString(), subLevelId);
+            VehiclePreview cached = getCachedPreview(key, name);
+            if (cached != null) {
+                return cached;
+            }
+            VehiclePreview preview = new VehiclePreview(
                     name,
                     NativeBlueprintCaptureService.capturePreview(
                             level,
@@ -124,6 +140,8 @@ public final class VehicleQueryService {
                             name
                     ).fileContents()
             );
+            cachePreview(key, preview);
+            return preview;
         }
 
         SubLevelData data = StoredVehicleRepository.findData(container, subLevelId);
@@ -132,10 +150,17 @@ public final class VehicleQueryService {
         }
         requireHealthyStoredVehicle(container, subLevelId);
         String name = StoredVehicleRepository.resolveName(data);
-        return new VehiclePreview(
+        PreviewCacheKey key = new PreviewCacheKey(level.dimension().location().toString(), subLevelId);
+        VehiclePreview cached = getCachedPreview(key, name);
+        if (cached != null) {
+            return cached;
+        }
+        VehiclePreview preview = new VehiclePreview(
                 name,
                 NativeBlueprintCaptureService.captureStoredPreview(level, data, name)
         );
+        cachePreview(key, preview);
+        return preview;
     }
 
     public static void teleportVehicle(ServerLevel level, UUID subLevelId, Vector3d targetPosition) throws Exception {
@@ -144,8 +169,7 @@ public final class VehicleQueryService {
         if (subLevel instanceof ServerSubLevel) {
             StructureTransformService.teleportToWorldPosition(level, subLevelId, targetPosition);
         } else {
-            requireHealthyStoredVehicle(container, subLevelId);
-            StoredVehicleRepository.move(container, subLevelId, targetPosition);
+            throw new IllegalStateException("vehicle is not loaded; teleport is unavailable");
         }
         clearCaches();
     }
@@ -225,6 +249,32 @@ public final class VehicleQueryService {
     public static void clearCaches() {
         StoredVehicleRepository.clearCache();
         RESULT_CACHE.clear();
+        PREVIEW_CACHE.clear();
+    }
+
+    private static VehiclePreview getCachedPreview(PreviewCacheKey key, String expectedName) {
+        long now = System.currentTimeMillis();
+        PREVIEW_CACHE.entrySet().removeIf(entry -> now - entry.getValue().createdAtMillis() > PREVIEW_CACHE_TTL_MS);
+        PreviewCacheEntry entry = PREVIEW_CACHE.get(key);
+        if (entry == null || !entry.name().equals(expectedName)) {
+            return null;
+        }
+        return new VehiclePreview(entry.name(), entry.blueprintBytes().clone());
+    }
+
+    private static void cachePreview(PreviewCacheKey key, VehiclePreview preview) {
+        byte[] bytes = preview.blueprintBytes();
+        if (bytes.length > PREVIEW_CACHE_MAX_BYTES) {
+            return;
+        }
+        PREVIEW_CACHE.put(key, new PreviewCacheEntry(
+                System.currentTimeMillis(),
+                preview.name(),
+                bytes.clone()
+        ));
+        while (PREVIEW_CACHE.size() > PREVIEW_CACHE_MAX_ENTRIES) {
+            PREVIEW_CACHE.remove(PREVIEW_CACHE.keySet().iterator().next());
+        }
     }
 
     private static BoundingBox3d findBounds(ServerLevel level, UUID subLevelId) throws IOException {
@@ -294,5 +344,11 @@ public final class VehicleQueryService {
     }
 
     private record QueryResultCache(long createdAtMillis, List<VehicleQueryEntry> entries) {
+    }
+
+    private record PreviewCacheKey(String dimensionId, UUID subLevelId) {
+    }
+
+    private record PreviewCacheEntry(long createdAtMillis, String name, byte[] blueprintBytes) {
     }
 }

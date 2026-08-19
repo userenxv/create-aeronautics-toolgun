@@ -52,6 +52,13 @@ public final class ConstraintPoseTransaction {
             mutation.apply(target);
             requireFinitePose(target);
 
+            // A pose change without tracked toolgun constraints does not need a
+            // constraint transaction or a physics-constraint rebuild.
+            if (constraints.isEmpty()) {
+                postRebuildAction.apply(target);
+                return target;
+            }
+
             List<RebuildSpec> currentPoseSpecs = computeRebuildSpecs(constraints);
             replacementStarted = true;
             replaceConstraints(level, subLevelId, currentPoseSpecs);

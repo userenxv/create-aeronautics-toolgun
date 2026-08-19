@@ -51,22 +51,14 @@ public final class ClientPlacementPreviewRenderer {
         Vec3 cameraPos = event.getCamera().getPosition();
         poseStack.pushPose();
         poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-        MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-        VertexConsumer consumer = bufferSource.getBuffer(PREVIEW_RENDER_TYPE);
-        VertexConsumer fillConsumer = bufferSource.getBuffer(RenderType.debugQuads());
-
         if (preview == null || !preview.hasRenderableSamples()) {
-            renderPreviewFallback(poseStack, consumer, fillConsumer, placement.target, placement.rootOrientation);
             poseStack.popPose();
-            bufferSource.endBatch(PREVIEW_RENDER_TYPE);
-            bufferSource.endBatch(RenderType.debugQuads());
             return;
         }
 
         Vector3d liftedTarget = new Vector3d(placement.target);
         Quaterniond previewRootOrientation = new Quaterniond(preview.rootOrientation()).mul(placement.rootOrientation);
-        Vector3d previewRootRelativePosition = preview.rootRelativePosition();
-        if (!ClientPlacementPreviewMesh.render(
+        ClientPlacementPreviewMesh.render(
                 poseStack,
                 event.getModelViewMatrix(),
                 event.getProjectionMatrix(),
@@ -75,74 +67,9 @@ public final class ClientPlacementPreviewRenderer {
                 previewRootOrientation,
                 placement.scaleFactor,
                 finalMainTarget
-        )) {
-            renderPreviewFallback(poseStack, consumer, fillConsumer, liftedTarget, placement.rootOrientation);
-            renderUncachedPreview(
-                    poseStack,
-                    consumer,
-                    fillConsumer,
-                    preview,
-                    liftedTarget,
-                    previewRootOrientation,
-                    previewRootRelativePosition,
-                    placement.scaleFactor
-            );
-        }
+        );
 
         poseStack.popPose();
-        bufferSource.endBatch(PREVIEW_RENDER_TYPE);
-        bufferSource.endBatch(RenderType.debugQuads());
-    }
-
-    private static void renderUncachedPreview(
-            PoseStack poseStack,
-            VertexConsumer consumer,
-            VertexConsumer fillConsumer,
-            PreviewBlueprintData preview,
-            Vector3d liftedTarget,
-            Quaterniond previewRootOrientation,
-            Vector3d previewRootRelativePosition,
-            double scaleFactor
-    ) {
-        for (PreviewBlueprintData.PreviewSubLevel subLevel : preview.subLevels()) {
-            Vector3d subAnchor = new Vector3d(subLevel.relativePosition())
-                    .sub(previewRootRelativePosition)
-                    .mul(scaleFactor);
-            previewRootOrientation.transform(subAnchor);
-            subAnchor.add(liftedTarget);
-            Quaterniond subOrientation = new Quaterniond(previewRootOrientation)
-                    .mul(subLevel.relativeOrientation());
-            Vector3d subRotationOffset = new Vector3d(subLevel.localPlotAnchor());
-            for (Vector3d sample : subLevel.sampleBlocks()) {
-                Vector3d localOffset = new Vector3d(sample)
-                        .sub(subRotationOffset)
-                        .mul(scaleFactor);
-                subOrientation.transform(localOffset);
-                Vector3d worldSample = new Vector3d(subAnchor).add(localOffset);
-                renderPreviewCube(
-                        poseStack,
-                        consumer,
-                        fillConsumer,
-                        worldSample,
-                        subOrientation,
-                        scaleFactor,
-                        0.95F,
-                        0.78F,
-                        0.45F,
-                        0.9F
-                );
-                renderPreviewPoint(
-                        poseStack,
-                        fillConsumer,
-                        fillConsumer,
-                        worldSample,
-                        1.0F,
-                        0.9F,
-                        0.5F,
-                        0.95F
-                );
-            }
-        }
     }
 
     public static void renderMagneticMarkers(RenderLevelStageEvent event) {

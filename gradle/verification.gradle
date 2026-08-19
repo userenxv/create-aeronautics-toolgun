@@ -149,9 +149,9 @@ def compatibilityArtifacts = tasks.register('prepareCompatibilityArtifacts', Syn
     from(configurations.legacySable) {
         rename { 'sable-legacy.jar' }
     }
-    from(configurations.primaryAeronautics) {
-        rename { 'aeronautics-primary.jar' }
-    }
+    from(configurations.primaryAeronautics) { into 'aeronautics-primary' }
+    from(configurations.primarySimulated) { into 'aeronautics-primary' }
+    from(configurations.primaryOffroad) { into 'aeronautics-primary' }
     from(configurations.legacyAeronautics) {
         rename { 'aeronautics-legacy.jar' }
     }

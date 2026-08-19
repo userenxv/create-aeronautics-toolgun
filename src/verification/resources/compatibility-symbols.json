@@ -206,7 +206,7 @@
     },
     {
       "label": "Aeronautics bundle 1.3.0 primary integrations",
-      "path": "build/compatibility-artifacts/aeronautics-primary.jar",
+        "path": "build/compatibility-artifacts/aeronautics-primary",
       "required": true,
       "classes": [
         "dev/eriksonn/aeronautics/content/blocks/propeller/bearing/contraption/PropellerBearingContraptionEntity",

@@ -1,6 +1,7 @@
 package com.enxv.aeronauticsstructuretool.toolgun.transform;
 
 import com.enxv.aeronauticsstructuretool.RotationAxisMode;
+import com.enxv.aeronauticsstructuretool.ToolgunConstraintTracker;
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.ConstraintPoseTransaction;
 import dev.ryanhcode.sable.api.SubLevelHelper;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
@@ -94,12 +95,13 @@ final class TranslationSessionManager {
             Vector3d desiredPosePosition
     ) throws IOException {
         requireFinite(desiredPosePosition, "translation target");
+        boolean resetVelocity = ToolgunConstraintTracker.getConstraintsForSubLevel(subLevelId).isEmpty();
         ConstraintPoseTransaction.apply(level, subLevelId, subLevel ->
-                SubLevelPoseOperations.movePointToWorld(
+                SubLevelPoseOperations.teleportToWorldPosition(
                         level,
                         subLevel,
-                        new Vector3d(subLevel.logicalPose().rotationPoint()),
-                        new Vector3d(desiredPosePosition)
+                        new Vector3d(desiredPosePosition),
+                        resetVelocity
                 )
         );
     }

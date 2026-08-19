@@ -41,6 +41,31 @@ public final class SubLevelPoseOperations {
         synchronize(level, subLevel);
     }
 
+    public static void teleportToWorldPosition(
+            ServerLevel level,
+            ServerSubLevel subLevel,
+            Vector3d destination,
+            boolean resetVelocity
+    ) throws IOException {
+        if (subLevel == null || destination == null) {
+            throw new IOException("missing sublevel teleport target");
+        }
+        requireFinite(destination, "sublevel teleport destination");
+        try {
+            PhysicsPipeline pipeline = SablePhysicsPipelineAccess.require(level);
+            if (resetVelocity) {
+                pipeline.resetVelocity(subLevel);
+            }
+            pipeline.teleport(
+                    subLevel,
+                    new Vector3d(destination),
+                    new Quaterniond(subLevel.logicalPose().orientation())
+            );
+        } catch (RuntimeException exception) {
+            throw new IOException("failed to teleport sublevel " + subLevel.getUniqueId(), exception);
+        }
+    }
+
     public static void resizeAtCenter(
             ServerLevel level,
             ServerSubLevel subLevel,

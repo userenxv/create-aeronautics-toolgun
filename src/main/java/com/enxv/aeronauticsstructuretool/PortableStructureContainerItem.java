@@ -35,6 +35,7 @@ import java.util.List;
 
 public final class PortableStructureContainerItem extends Item {
     private static final String DEFAULT_BLUEPRINT_NAME = "portable_structure";
+    private static final double CONNECTED_SUBLEVEL_AABB_EXPANSION_BLOCKS = 1.0D;
     private final boolean canPlacePrinter;
     private final boolean repairIntegration;
     private final boolean consumeAfterPlacement;
@@ -145,13 +146,17 @@ public final class PortableStructureContainerItem extends Item {
 
         String blueprintName = resolveBlueprintName(containing);
         ConnectedStructureSnapshot snapshot = containing instanceof dev.ryanhcode.sable.sublevel.ServerSubLevel serverSubLevel
-                ? ConnectedStructureSnapshotService.capture(level, serverSubLevel)
+                ? ConnectedStructureSnapshotService.capture(
+                        level,
+                        serverSubLevel,
+                        CONNECTED_SUBLEVEL_AABB_EXPANSION_BLOCKS
+                )
                 : null;
         CapturedBlueprintArchive saved = NativeBlueprintCaptureService.captureAtBlock(
                 level,
                 clickedPos,
                 blueprintName,
-                -1
+                CONNECTED_SUBLEVEL_AABB_EXPANSION_BLOCKS
         );
         byte[] normalizedBlueprint = PortableContainerStorage.prepareCapturedBlueprint(
                 level,
@@ -174,7 +179,7 @@ public final class PortableStructureContainerItem extends Item {
         ConnectedStructureRemovalService.removeAt(
                 level,
                 clickedPos,
-                -1
+                CONNECTED_SUBLEVEL_AABB_EXPANSION_BLOCKS
         );
         if (this.repairIntegration && context.getPlayer() instanceof ServerPlayer serverPlayer) {
             if (snapshot != null) {

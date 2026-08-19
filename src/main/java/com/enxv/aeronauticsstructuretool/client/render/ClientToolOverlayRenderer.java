@@ -133,6 +133,18 @@ public final class ClientToolOverlayRenderer {
         };
         renderHudLine(guiGraphics, minecraft, modeLine, 8.0F, 8.0F, 1.35F, 0xFFFFEE5A, 0xFF6B5400);
         renderHudLine(guiGraphics, minecraft, detailLine, 8.0F, 30.0F, 1.12F, 0xFFFFD84A, 0xFF6A4D00);
+        if (ClientToolState.getMode() == ToolMode.LOAD && ClientPlacementPreviewMesh.isBuilding()) {
+            renderHudLine(
+                    guiGraphics,
+                    minecraft,
+                    Component.translatable("screen.create_aeronautics_toolgun.hud.preview_loading"),
+                    8.0F,
+                    49.0F,
+                    1.0F,
+                    0xFFFFD84A,
+                    0xFF6A4D00
+            );
+        }
     }
 
     private static void renderWeldMarkers(RenderLevelStageEvent event) {

@@ -19,6 +19,7 @@ public final class ToolModeVehicleQueryController {
     private final NearbyVehicleQueryState state = new NearbyVehicleQueryState();
     private int page;
     private long nextRefreshMillis;
+    private boolean queryInFlight;
 
     public NearbyVehicleQueryState state() {
         return this.state;
@@ -63,11 +64,15 @@ public final class ToolModeVehicleQueryController {
 
     public void refresh(Minecraft minecraft, int range) {
         this.nextRefreshMillis = System.currentTimeMillis() + ToolModeQueryRange.refreshIntervalMillis(range);
+        if (this.queryInFlight) {
+            return;
+        }
         if (minecraft == null || minecraft.level == null || minecraft.player == null) {
             this.state.clear();
             this.page = 0;
             return;
         }
+        this.queryInFlight = true;
         PacketDistributor.sendToServer(new RequestQueryVehiclesPayload(range));
     }
 
@@ -76,6 +81,7 @@ public final class ToolModeVehicleQueryController {
             Minecraft minecraft,
             StructurePreviewViewState previewView
     ) {
+        this.queryInFlight = false;
         boolean previewNeedsReload = this.state.replaceEntries(syncedEntries);
         this.page = Math.min(this.page, Math.max(0, pageCount() - 1));
         if (previewNeedsReload) {

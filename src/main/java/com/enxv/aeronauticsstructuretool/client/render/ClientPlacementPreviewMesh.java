@@ -97,6 +97,10 @@ final class ClientPlacementPreviewMesh implements AutoCloseable {
         }
     }
 
+    static boolean isBuilding() {
+        return pendingBuild != null && !cachedBuildComplete;
+    }
+
     static void clearCache() {
         ClientPlacementPreviewMesh previous = cachedMesh;
         BuildState previousBuild = pendingBuild;

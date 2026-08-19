@@ -4,7 +4,6 @@ import com.enxv.aeronauticsstructuretool.AeronauticsStructureToolMod;
 import com.enxv.aeronauticsstructuretool.compat.sable.SableHoldingStorageAccess;
 import dev.ryanhcode.sable.api.SubLevelHelper;
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
-import dev.ryanhcode.sable.companion.math.Pose3d;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.storage.HoldingSubLevel;
 import dev.ryanhcode.sable.sublevel.storage.holding.GlobalSavedSubLevelPointer;
@@ -12,9 +11,7 @@ import dev.ryanhcode.sable.sublevel.storage.holding.SavedSubLevelPointer;
 import dev.ryanhcode.sable.sublevel.storage.holding.SubLevelHoldingChunk;
 import dev.ryanhcode.sable.sublevel.storage.serialization.SubLevelData;
 import dev.ryanhcode.sable.sublevel.storage.serialization.SubLevelStorage;
-import dev.ryanhcode.sable.util.SableNBTUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import org.joml.Vector3d;
 
@@ -89,49 +86,6 @@ public final class StoredVehicleRepository {
                 container.getHoldingChunkMap().getStorage()
         ).get(subLevelId);
         return entry == null ? null : entry.data();
-    }
-
-    public static void move(
-            ServerSubLevelContainer container,
-            UUID subLevelId,
-            Vector3d targetPosition
-    ) throws Exception {
-        List<StoredSubLevelRecord> records = collectChain(container, subLevelId);
-        StoredSubLevelRecord root = records.stream()
-                .filter(record -> subLevelId.equals(record.data().uuid()))
-                .findFirst()
-                .orElse(null);
-        if (root == null || root.data() == null) {
-            throw new IllegalArgumentException("target is not available");
-        }
-
-        Pose3d pose = root.data().pose();
-        Vector3d delta = targetPosition.sub(pose.position(), new Vector3d());
-        ChunkPos targetChunk = new ChunkPos(BlockPos.containing(targetPosition.x, targetPosition.y, targetPosition.z));
-        SubLevelStorage storage = container.getHoldingChunkMap().getStorage();
-        List<StoredSubLevelMove> moves = new ArrayList<>();
-        for (StoredSubLevelRecord record : records) {
-            SubLevelData data = record.data();
-            moveData(data, delta);
-            data.setOriginLoadedChunk(targetChunk);
-            GlobalSavedSubLevelPointer oldPointer = record.pointer();
-            GlobalSavedSubLevelPointer newPointer;
-            if (oldPointer != null && targetChunk.equals(oldPointer.chunkPos())) {
-                storage.attemptSaveSubLevel(oldPointer, data);
-                newPointer = oldPointer;
-            } else {
-                newPointer = storage.attemptSaveSubLevel(targetChunk, data);
-                if (newPointer == null) {
-                    throw new IOException("failed to save moved structure");
-                }
-            }
-            moves.add(new StoredSubLevelMove(data, oldPointer, newPointer));
-        }
-
-        updateMovedSubLevels(container, storage, targetChunk, moves);
-        storage.flush();
-        container.getHoldingChunkMap().processChanges();
-        StoredVehicleIndex.invalidate(storage);
     }
 
     public static RecoveryResult recover(
@@ -977,32 +931,6 @@ public final class StoredVehicleRepository {
         return new Vector3d();
     }
 
-    private static List<StoredSubLevelRecord> collectChain(
-            ServerSubLevelContainer container,
-            UUID rootSubLevelId
-    ) throws IOException {
-        Map<UUID, StoredSubLevelRecord> records = new LinkedHashMap<>();
-        List<UUID> queue = new ArrayList<>();
-        queue.add(rootSubLevelId);
-        for (int i = 0; i < queue.size(); i++) {
-            UUID subLevelId = queue.get(i);
-            if (records.containsKey(subLevelId)) {
-                continue;
-            }
-            StoredSubLevelRecord record = findRecord(container, subLevelId);
-            if (record == null || record.data() == null) {
-                throw new IllegalArgumentException("stored dependency is not available");
-            }
-            records.put(subLevelId, record);
-            for (UUID dependency : record.data().dependencies()) {
-                if (dependency != null && !records.containsKey(dependency) && !queue.contains(dependency)) {
-                    queue.add(dependency);
-                }
-            }
-        }
-        return new ArrayList<>(records.values());
-    }
-
     private static StoredSubLevelRecord findRecord(
             ServerSubLevelContainer container,
             UUID subLevelId
@@ -1021,70 +949,10 @@ public final class StoredVehicleRepository {
         return entry == null ? null : new StoredSubLevelRecord(entry.data(), entry.pointer());
     }
 
-    private static void moveData(SubLevelData data, Vector3d delta) {
-        data.pose().position().add(delta);
-        data.bounds().move(delta.x, delta.y, delta.z);
-        CompoundTag fullTag = data.fullTag();
-        fullTag.put("pose", SableNBTUtils.writePose3d(data.pose()));
-        fullTag.put("world_bounds", SableNBTUtils.writeBoundingBox(data.bounds()));
-    }
-
-    private static void updateMovedSubLevels(
-            ServerSubLevelContainer container,
-            SubLevelStorage storage,
-            ChunkPos targetChunk,
-            List<StoredSubLevelMove> moves
-    ) throws ReflectiveOperationException {
-        SubLevelHoldingChunk targetHoldingChunk = SableHoldingStorageAccess.getOrLoadHoldingChunk(
-                container,
-                targetChunk,
-                true
-        );
-        if (targetHoldingChunk == null) {
-            throw new IllegalStateException("failed to prepare target holding chunk");
-        }
-
-        for (StoredSubLevelMove move : moves) {
-            if (move.oldPointer() != null && !move.oldPointer().equals(move.newPointer())) {
-                SubLevelHoldingChunk oldHoldingChunk = SableHoldingStorageAccess.getOrLoadHoldingChunk(
-                        container,
-                        move.oldPointer().chunkPos(),
-                        false
-                );
-                if (oldHoldingChunk == null) {
-                    oldHoldingChunk = storage.attemptLoadHoldingChunk(move.oldPointer().chunkPos());
-                }
-                if (oldHoldingChunk != null) {
-                    oldHoldingChunk.getSubLevelPointers().remove(move.oldPointer().local());
-                    SableHoldingStorageAccess.removeLoadedHoldingSubLevel(oldHoldingChunk, move.data().uuid());
-                    storage.attemptSaveHoldingChunk(move.oldPointer().chunkPos(), oldHoldingChunk);
-                    SableHoldingStorageAccess.markHoldingChunkDirty(container, move.oldPointer().chunkPos());
-                }
-                storage.attemptSaveSubLevel(move.oldPointer(), null);
-            }
-
-            if (!targetHoldingChunk.getSubLevelPointers().contains(move.newPointer().local())) {
-                targetHoldingChunk.getSubLevelPointers().add(move.newPointer().local());
-            }
-            HoldingSubLevel moved = new HoldingSubLevel(move.data(), move.newPointer());
-            targetHoldingChunk.acceptHoldingSubLevel(moved);
-            SableHoldingStorageAccess.registerHoldingSubLevel(container, moved);
-        }
-        storage.attemptSaveHoldingChunk(targetChunk, targetHoldingChunk);
-        SableHoldingStorageAccess.markHoldingChunkDirty(container, targetChunk);
-    }
-
     private record StoredQueryCache(long createdAtMillis, List<StoredVehicleSnapshot> snapshots) {
     }
 
     private record StoredSubLevelRecord(SubLevelData data, GlobalSavedSubLevelPointer pointer) {
-    }
-
-    private record StoredSubLevelMove(
-            SubLevelData data,
-            GlobalSavedSubLevelPointer oldPointer,
-            GlobalSavedSubLevelPointer newPointer
-    ) {
     }
 
     private record RecoveryWrite(

@@ -44,7 +44,9 @@ final class PortableStructurePrinterPrintPlan {
 
         long seed = 31L * printerPos.asLong() + java.util.Arrays.hashCode(blueprintBytes);
         Collections.shuffle(targets, new Random(seed));
-        return List.copyOf(targets);
+        // The plan is never mutated after shuffling; avoid copying the entire
+        // target array a second time for large blueprints.
+        return Collections.unmodifiableList(targets);
     }
 
     record PrintTarget(Vec3 position, Quaterniond orientation) {
