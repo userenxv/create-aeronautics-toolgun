@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -170,7 +171,7 @@ public final class MaterialCountCodec {
             addItemIfPresent(compound, itemCounts);
             for (String key : compound.getAllKeys()) {
                 switch (key) {
-                    case "FrequencyFirst", "FrequencyLast": continue;
+                    case "FrequencyFirst", "FrequencyLast", "consumedItem": continue;
                     case "Filter": {
                         CompoundTag item = compound.getCompound(key);
                         switch (item.getString("id")) {
@@ -182,6 +183,12 @@ public final class MaterialCountCodec {
                                 continue;
                             }
                         }
+                    }
+                    case "material": { //copycats
+                        CompoundTag material = new CompoundTag();
+                        material.putString("id", compound.getCompound(key).getString("Name"));
+                        material.putInt("count", 1);
+                        addItemIfPresent(material, itemCounts);
                     }
                 }
                 scanItems(compound.get(key), itemCounts, depth + 1);

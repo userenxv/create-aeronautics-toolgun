@@ -11,10 +11,12 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.BedBlock;
-import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.TallFlowerBlock;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.SlabType;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,15 +43,34 @@ final class BlueprintBlockCounter {
                 case "create:belt": {
                     switch (block.state().getValue(BeltBlock.PART)) {
                         case END, START, PULLEY : mergeBlock("create:shaft", blockCounts, "plot block " + block.blockPos().toShortString());
-                        break;
                     }
                     if (block.state().getValue(BeltBlock.PART) != BeltPart.START) continue;
+                    break;
                 }
                 //case "create_connected:kinetic_bridge_destination": continue;
-                case "minecraft:large_fern", "minecraft:rose_bush", "minecraft:lilac", "minecraft:pitcher_plant", "minecraft:peony", "minecraft:tall_grass": {
+                case "minecraft:large_fern", "minecraft:rose_bush",
+                     "minecraft:lilac", "minecraft:pitcher_plant",
+                     "minecraft:peony", "minecraft:tall_grass": {
                     if (block.state().getValue(TallFlowerBlock.HALF) == DoubleBlockHalf.UPPER) continue;
+                    break;
                 }
-                default: if (fullName.contains("bed") && block.state().getValue(BedBlock.PART) == BedPart.FOOT) continue;
+                case "create:shaft", "create:fluid_pipe",
+                     "create:cogwheel", "create:large_cogwheel",
+                     "copycats:copycat_shaft", "copycats:copycat_fluid_pipe",
+                     "copycats:copycat_cogwheel", "copycats:copycat_large_cogwheel": {
+                    String bracket = block.blockEntityTag().getCompound("Bracket").getString("Name");
+                    if (!bracket.isEmpty()) {
+                        mergeBlock(bracket, blockCounts, "plot block " + block.blockPos().toShortString());
+                    }
+                    break;
+                }
+                default: {
+                    if (fullName.contains("bed") && block.state().getValue(BedBlock.PART) == BedPart.FOOT) continue;
+                    if (fullName.contains("_door") && block.state().getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) continue;
+                    if (fullName.contains("_slab") && block.state().getValue(SlabBlock.TYPE) == SlabType.DOUBLE) {
+                        mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
+                    }
+                }
             }
             mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
         }

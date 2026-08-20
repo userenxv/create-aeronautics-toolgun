@@ -30,10 +30,12 @@ final class PortableStructurePrinterInventory {
     private static final String CREATE_ANDESITE_ENCASED_LARGE_COGWHEEL = "create:andesite_encased_large_cogwheel";
     private static final String CREATE_BRASS_ENCASED_LARGE_COGWHEEL = "create:brass_encased_large_cogwheel";
     private static final String CREATE_METAL_GIRDER_ENCASED_SHAFT = "create:metal_girder_encased_shaft";
+    private static final String CREATE_POWERED_SHAFT = "create:powered_shaft";
     private static final String CREATE_SHAFT = "create:shaft";
     private static final String CREATE_COGWHEEL = "create:cogwheel";
     private static final String CREATE_LARGE_COGWHEEL = "create:large_cogwheel";
     private static final String CREATE_METAL_GIRDER = "create:metal_girder";
+    private static final String DIESEL_POWERED_SHAFT = "createdieselgenerators:powered_engine_shaft";
 
     private PortableStructurePrinterInventory() {
     }
@@ -178,27 +180,16 @@ final class PortableStructurePrinterInventory {
             return true;
         }
         switch (blockId) {
-            case CREATE_ANDESITE_ENCASED_SHAFT -> {
+            case CREATE_ANDESITE_ENCASED_SHAFT, CREATE_BRASS_ENCASED_SHAFT,
+                 CREATE_POWERED_SHAFT, DIESEL_POWERED_SHAFT -> {
                 required.merge(CREATE_SHAFT, count, Long::sum);
                 return true;
             }
-            case CREATE_BRASS_ENCASED_SHAFT -> {
-                required.merge(CREATE_SHAFT, count, Long::sum);
-                return true;
-            }
-            case CREATE_ANDESITE_ENCASED_COGWHEEL -> {
+            case CREATE_ANDESITE_ENCASED_COGWHEEL, CREATE_BRASS_ENCASED_COGWHEEL -> {
                 required.merge(CREATE_COGWHEEL, count, Long::sum);
                 return true;
             }
-            case CREATE_BRASS_ENCASED_COGWHEEL -> {
-                required.merge(CREATE_COGWHEEL, count, Long::sum);
-                return true;
-            }
-            case CREATE_ANDESITE_ENCASED_LARGE_COGWHEEL -> {
-                required.merge(CREATE_LARGE_COGWHEEL, count, Long::sum);
-                return true;
-            }
-            case CREATE_BRASS_ENCASED_LARGE_COGWHEEL -> {
+            case CREATE_ANDESITE_ENCASED_LARGE_COGWHEEL, CREATE_BRASS_ENCASED_LARGE_COGWHEEL -> {
                 required.merge(CREATE_LARGE_COGWHEEL, count, Long::sum);
                 return true;
             }
