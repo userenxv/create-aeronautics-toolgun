@@ -195,6 +195,7 @@ dependencies {
         exclude(group: "cc.tweaked", module: "cc-tweaked-1.21.1-forge")
     }
 
+    implementation("maven.modrinth:UT2M39wf:kecZ0sl7") //copycats+
     sableSchematicApi 'maven.modrinth:sable-schematic-tool:0.4.0'
 
     implementation primaryNestedJars

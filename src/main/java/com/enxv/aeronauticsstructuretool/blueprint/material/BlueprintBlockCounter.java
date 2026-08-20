@@ -1,5 +1,9 @@
 package com.enxv.aeronauticsstructuretool.blueprint.material;
 
+import com.copycatsplus.copycats.content.copycat.board.CopycatBoardBlock;
+import com.copycatsplus.copycats.content.copycat.byte_panel.CopycatBytePanelBlock;
+import com.copycatsplus.copycats.content.copycat.bytes.CopycatByteBlock;
+import com.copycatsplus.copycats.content.copycat.half_layer.CopycatHalfLayerBlock;
 import com.enxv.aeronauticsstructuretool.RuntimeContraptionBlueprint;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.PlotBlockDataReader;
 import com.enxv.aeronauticsstructuretool.blueprint.runtime.RuntimeContraptionCodec;
@@ -10,11 +14,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.BedBlock;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.SlabBlock;
-import net.minecraft.world.level.block.TallFlowerBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.SlabType;
 
@@ -26,6 +28,30 @@ import static com.enxv.aeronauticsstructuretool.blueprint.codec.NbtTagValidator.
 import static com.enxv.aeronauticsstructuretool.blueprint.codec.NbtTagValidator.requireCompoundList;
 
 final class BlueprintBlockCounter {
+
+    private static final BooleanProperty[] COPYCAT_BOARD_STATES = {
+            CopycatBoardBlock.UP,
+            CopycatBoardBlock.DOWN,
+            CopycatBoardBlock.EAST,
+            CopycatBoardBlock.NORTH,
+            CopycatBoardBlock.WEST,
+            CopycatBoardBlock.SOUTH
+    };
+
+    private static final BooleanProperty[] COPYCAT_BYTE_STATES = {
+            CopycatByteBlock.BOTTOM_NE, CopycatByteBlock.BOTTOM_NW,
+            CopycatByteBlock.BOTTOM_SE, CopycatByteBlock.BOTTOM_SW,
+            CopycatByteBlock.TOP_NE, CopycatByteBlock.TOP_NW,
+            CopycatByteBlock.TOP_SE, CopycatByteBlock.TOP_SW
+    };
+
+    private static final BooleanProperty[] COPYCAT_BYTE_PANEL_STATES = {
+            CopycatBytePanelBlock.BOTTOM_LEFT,
+            CopycatBytePanelBlock.BOTTOM_RIGHT,
+            CopycatBytePanelBlock.TOP_LEFT,
+            CopycatBytePanelBlock.TOP_RIGHT
+    };
+
     private BlueprintBlockCounter() {
     }
 
@@ -63,6 +89,47 @@ final class BlueprintBlockCounter {
                         mergeBlock(bracket, blockCounts, "plot block " + block.blockPos().toShortString());
                     }
                     break;
+                }
+                case "copycats:copycat_slice", "copycats:copycat_vertical_slice",
+                     "copycats:copycat_corner_slice", "copycats:copycat_slope_layer",
+                     "copycats:copycat_layer": {
+                    for(int i = 1; i < block.state().getValue(SnowLayerBlock.LAYERS); i = i+1) {
+                        mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
+                    }
+                    break;
+                }
+                case "copycats:copycat_half_layer", "copycats:copycat_vertical_half_layer",
+                     "copycats:copycat_stacked_half_layer": {
+                    int positiveLayers = block.state().getValue(CopycatHalfLayerBlock.POSITIVE_LAYERS);
+                    int negativeLayers = block.state().getValue(CopycatHalfLayerBlock.NEGATIVE_LAYERS);
+                    for(int i = 1; i < positiveLayers + negativeLayers; i = i+1) {
+                        mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
+                    }
+                    break;
+                }
+                case "copycats:copycat_board": {
+                    for(BooleanProperty blockState : COPYCAT_BOARD_STATES) {
+                        if (block.state().getValue(blockState)) {
+                            mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
+                        }
+                    }
+                    continue;
+                }
+                case "copycats:copycat_byte": {
+                    for(BooleanProperty blockState: COPYCAT_BYTE_STATES) {
+                        if (block.state().getValue(blockState)) {
+                            mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
+                        }
+                    }
+                    continue;
+                }
+                case "copycats:copycat_byte_panel": {
+                    for(BooleanProperty blockState: COPYCAT_BYTE_PANEL_STATES) {
+                        if (block.state().getValue(blockState)) {
+                            mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
+                        }
+                    }
+                    continue;
                 }
                 default: {
                     if (fullName.contains("bed") && block.state().getValue(BedBlock.PART) == BedPart.FOOT) continue;
