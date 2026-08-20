@@ -227,14 +227,6 @@ public final class NativeBlueprintPlacementService {
 
             LoadedSubLevelAlignment.alignAll(loadedSublevels, rootBlueprintId, target);
             diagnostics.run(
-                    "Sable Blueprint API welds and no-contact relations",
-                    () -> SableBlueprintApiCompat.restore(
-                            root.getCompound(NativeBlueprintFormat.SABLE_BLUEPRINT_API_SIDECAR_TAG),
-                            loadedSublevels,
-                            scaleFactor
-                    )
-            );
-            diagnostics.run(
                     "Simulated rope attachments",
                     () -> SimulatedStructureCompat.refreshRopeAttachments(level, loadedSublevels)
             );
@@ -255,6 +247,14 @@ public final class NativeBlueprintPlacementService {
                 );
                 loaded.subLevel().updateLastPose();
             }
+            diagnostics.run(
+                    "Sable Blueprint API welds and no-contact relations",
+                    () -> SableBlueprintApiCompat.restore(
+                            root.getCompound(NativeBlueprintFormat.SABLE_BLUEPRINT_API_SIDECAR_TAG),
+                            loadedSublevels,
+                            scaleFactor
+                    )
+            );
             restorePostLoadFeatures(
                     level,
                     loadedSublevels,
