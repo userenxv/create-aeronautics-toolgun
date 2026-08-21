@@ -1,5 +1,6 @@
 package com.enxv.aeronauticsstructuretool.compat.sableschematicapi;
 
+import com.enxv.aeronauticsstructuretool.blueprint.geometry.LoadedSubLevelCoordinates;
 import com.enxv.aeronauticsstructuretool.blueprint.model.CapturePlan;
 import com.enxv.aeronauticsstructuretool.blueprint.model.CapturedSubLevel;
 import com.enxv.aeronauticsstructuretool.blueprint.model.LoadedSubLevel;
@@ -221,18 +222,7 @@ final class SableBlueprintApiCompatImpl {
         if (bounds.length != 6 || origin.length != 3) {
             throw new IllegalArgumentException("Sable weld frame bounds are malformed");
         }
-        int minX = bounds[0] - origin[0];
-        int minY = bounds[1] - origin[1];
-        int minZ = bounds[2] - origin[2];
-        int maxX = bounds[3] - origin[0];
-        int maxY = bounds[4] - origin[1];
-        int maxZ = bounds[5] - origin[2];
-        BlockPos center = loaded.subLevel().getPlot().getCenterBlock();
-        return new BlockPos(
-                center.getX() - (minX + maxX) / 2,
-                center.getY() - (minY + maxY) / 2,
-                center.getZ() - (minZ + maxZ) / 2
-        );
+        return LoadedSubLevelCoordinates.toGlobalBlockPos(loaded, BlockPos.ZERO);
     }
 
     private static UUID requireUuid(CompoundTag tag, String key) {
