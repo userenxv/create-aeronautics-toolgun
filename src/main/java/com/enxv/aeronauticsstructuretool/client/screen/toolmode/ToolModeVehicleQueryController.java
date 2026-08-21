@@ -18,7 +18,6 @@ public final class ToolModeVehicleQueryController {
 
     private final NearbyVehicleQueryState state = new NearbyVehicleQueryState();
     private int page;
-    private long nextRefreshMillis;
     private boolean queryInFlight;
 
     public NearbyVehicleQueryState state() {
@@ -53,17 +52,16 @@ public final class ToolModeVehicleQueryController {
 
     public void select(UUID id, Minecraft minecraft, StructurePreviewViewState previewView) {
         this.state.select(id);
+        for (int index = 0; index < this.state.entries().size(); index++) {
+            if (this.state.entries().get(index).id().equals(id)) {
+                this.page = index / ENTRIES_PER_PAGE;
+                break;
+            }
+        }
         requestSelectedPreview(minecraft, previewView);
     }
 
-    public void refreshIfDue(Minecraft minecraft, int range) {
-        if (System.currentTimeMillis() >= this.nextRefreshMillis) {
-            refresh(minecraft, range);
-        }
-    }
-
     public void refresh(Minecraft minecraft, int range) {
-        this.nextRefreshMillis = System.currentTimeMillis() + ToolModeQueryRange.refreshIntervalMillis(range);
         if (this.queryInFlight) {
             return;
         }

@@ -48,6 +48,76 @@ public final class ToolModeControls {
         }
     }
 
+    public static final class ToolbarButton extends Button {
+        private static final long CLICK_FEEDBACK_NANOS = 140_000_000L;
+        private final Font font;
+        private boolean pressed;
+        private long clickFeedbackUntil;
+
+        public ToolbarButton(Font font, int x, int y, int width, int height, Component message, OnPress onPress) {
+            super(x, y, width, height, message, onPress, DEFAULT_NARRATION);
+            this.font = font;
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            boolean hovered = mouseX >= this.getX()
+                    && mouseX < this.getX() + this.width
+                    && mouseY >= this.getY()
+                    && mouseY < this.getY() + this.height;
+            boolean pressedVisual = this.active
+                    && (this.pressed || System.nanoTime() < this.clickFeedbackUntil);
+            int fill = !this.active
+                    ? 0xAA262019
+                    : pressedVisual
+                    ? 0xFF9A5E24
+                    : hovered ? 0xFFE0A64A : 0xFF4A3820;
+            int topBorder = !this.active
+                    ? 0xFF7F735C
+                    : pressedVisual ? 0xFF6E3C18 : hovered ? 0xFFFFE4A8 : BRASS;
+            int bottomBorder = pressedVisual ? 0xFFFFC56B : PANEL_DARK;
+            int sideBorder = pressedVisual ? 0xFFD88A38 : topBorder;
+            int text = !this.active
+                    ? 0xFF7F735C
+                    : pressedVisual ? 0xFFFFE4A8 : hovered ? 0xFF21170B : TEXT_PRIMARY;
+            int x = this.getX();
+            int y = this.getY();
+            graphics.fill(x, y, x + this.width, y + this.height, fill);
+            graphics.fill(x, y, x + this.width, y + 1, topBorder);
+            graphics.fill(x, y + this.height - 1, x + this.width, y + this.height, bottomBorder);
+            graphics.fill(x, y, x + 1, y + this.height, sideBorder);
+            graphics.fill(x + this.width - 1, y, x + this.width, y + this.height, PANEL_DARK);
+            graphics.drawCenteredString(
+                    this.font,
+                    this.getMessage(),
+                    x + this.width / 2,
+                    y + (this.height - 8) / 2 + (pressedVisual ? 1 : 0),
+                    text
+            );
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            boolean inside = mouseX >= this.getX()
+                    && mouseX < this.getX() + this.width
+                    && mouseY >= this.getY()
+                    && mouseY < this.getY() + this.height;
+            if (button == 0 && inside && this.active && this.visible) {
+                this.pressed = true;
+                this.clickFeedbackUntil = System.nanoTime() + CLICK_FEEDBACK_NANOS;
+            }
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+
+        @Override
+        public boolean mouseReleased(double mouseX, double mouseY, int button) {
+            if (button == 0) {
+                this.pressed = false;
+            }
+            return super.mouseReleased(mouseX, mouseY, button);
+        }
+    }
+
     public static final class InfiniteRangeToggle {
         public static final int WIDTH = 56;
         public static final int HEIGHT = 16;
@@ -103,6 +173,69 @@ public final class ToolModeControls {
             graphics.drawString(
                     font,
                     Component.translatable("screen.create_aeronautics_toolgun.query.infinite"),
+                    this.x + 17,
+                    this.y + 4,
+                    selected ? TEXT_PRIMARY : TEXT_MUTED,
+                    false
+            );
+        }
+    }
+
+    public static final class RadarToggle {
+        public static final int WIDTH = 82;
+        public static final int HEIGHT = 16;
+
+        private final BooleanSupplier checked;
+        private final Runnable toggle;
+        private int x;
+        private int y;
+        private boolean visible;
+
+        public RadarToggle(int x, int y, BooleanSupplier checked, Runnable toggle) {
+            this.checked = checked;
+            this.toggle = toggle;
+            setPosition(x, y);
+        }
+
+        public void setPosition(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public void setVisible(boolean visible) {
+            this.visible = visible;
+        }
+
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            if (!this.visible || button != 0 || mouseX < this.x || mouseX > this.x + WIDTH
+                    || mouseY < this.y || mouseY > this.y + HEIGHT) {
+                return false;
+            }
+            this.toggle.run();
+            return true;
+        }
+
+        public void render(GuiGraphics graphics, Font font, double mouseX, double mouseY) {
+            if (!this.visible) {
+                return;
+            }
+            boolean selected = this.checked.getAsBoolean();
+            boolean hovered = mouseX >= this.x && mouseX <= this.x + WIDTH
+                    && mouseY >= this.y && mouseY <= this.y + HEIGHT;
+            int box = hovered ? 0xFF4A3A23 : 0xFF241E15;
+            int border = hovered ? BRASS : BRASS_SOFT;
+            graphics.fill(this.x, this.y + 2, this.x + 12, this.y + 14, box);
+            graphics.fill(this.x, this.y + 2, this.x + 12, this.y + 3, border);
+            graphics.fill(this.x, this.y + 13, this.x + 12, this.y + 14, PANEL_DARK);
+            graphics.fill(this.x, this.y + 2, this.x + 1, this.y + 14, border);
+            graphics.fill(this.x + 11, this.y + 2, this.x + 12, this.y + 14, PANEL_DARK);
+            if (selected) {
+                graphics.fill(this.x + 3, this.y + 5, this.x + 9, this.y + 11, BRASS);
+                graphics.fill(this.x + 4, this.y + 6, this.x + 8, this.y + 10, 0xFFFFE4A8);
+            }
+            graphics.drawString(
+                    font,
+                    Component.translatable("screen.create_aeronautics_toolgun.query.radar"),
                     this.x + 17,
                     this.y + 4,
                     selected ? TEXT_PRIMARY : TEXT_MUTED,

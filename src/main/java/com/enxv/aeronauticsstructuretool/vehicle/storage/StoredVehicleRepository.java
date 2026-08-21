@@ -40,17 +40,15 @@ public final class StoredVehicleRepository {
     }
 
     public static List<StoredVehicleSnapshot> snapshots(ServerSubLevelContainer container) throws IOException {
-        SubLevelStorage storage = container.getHoldingChunkMap().getStorage();
-        StoredVehicleIndex.Snapshot index = StoredVehicleIndex.snapshot(storage);
-        Map<UUID, HoldingSubLevel> inMemory = inMemorySubLevels(container);
+        StoredVehicleView view = storedVehicleView(container);
         List<StoredVehicleSnapshot> snapshots = new ArrayList<>();
         Set<UUID> seen = new HashSet<>();
-        appendInMemorySnapshots(storage, index, inMemory, snapshots, seen);
-        for (StoredVehicleIndex.Entry entry : index.entries().values()) {
+        appendInMemorySnapshots(view, snapshots, seen);
+        for (StoredVehicleIndex.Entry entry : view.index().entries().values()) {
             appendSnapshot(
                     entry.data(),
                     entry.pointer(),
-                    hasBrokenStorageChain(storage, index, inMemory, entry.data(), entry.pointer()),
+                    view.brokenIds().contains(entry.data().uuid()),
                     snapshots,
                     seen
             );
@@ -65,12 +63,7 @@ public final class StoredVehicleRepository {
         if (subLevelId == null) {
             return null;
         }
-        for (StoredVehicleSnapshot snapshot : snapshots(container)) {
-            if (subLevelId.equals(snapshot.id())) {
-                return snapshot;
-            }
-        }
-        return null;
+        return snapshotFor(storedVehicleView(container), subLevelId);
     }
 
     public static SubLevelData findData(ServerSubLevelContainer container, UUID subLevelId) throws IOException {
@@ -93,9 +86,10 @@ public final class StoredVehicleRepository {
             UUID subLevelId
     ) throws Exception {
         SubLevelStorage storage = container.getHoldingChunkMap().getStorage();
-        StoredVehicleIndex.Snapshot index = StoredVehicleIndex.snapshot(storage);
-        Map<UUID, HoldingSubLevel> inMemory = inMemorySubLevels(container);
-        StoredVehicleSnapshot snapshot = findSnapshot(container, subLevelId);
+        StoredVehicleView view = storedVehicleView(container, storage);
+        StoredVehicleIndex.Snapshot index = view.index();
+        Map<UUID, HoldingSubLevel> inMemory = view.inMemory();
+        StoredVehicleSnapshot snapshot = snapshotFor(view, subLevelId);
         if (snapshot == null) {
             throw new IOException("vehicle is no longer present in Sable storage");
         }
@@ -745,23 +739,15 @@ public final class StoredVehicleRepository {
     }
 
     private static void appendInMemorySnapshots(
-            SubLevelStorage storage,
-            StoredVehicleIndex.Snapshot index,
-            Map<UUID, HoldingSubLevel> inMemory,
+            StoredVehicleView view,
             List<StoredVehicleSnapshot> snapshots,
             Set<UUID> seen
     ) {
-        for (HoldingSubLevel holdingSubLevel : inMemory.values()) {
+        for (HoldingSubLevel holdingSubLevel : view.inMemory().values()) {
             appendSnapshot(
                     holdingSubLevel.data(),
                     holdingSubLevel.pointer(),
-                    hasBrokenStorageChain(
-                            storage,
-                            index,
-                            inMemory,
-                            holdingSubLevel.data(),
-                            holdingSubLevel.pointer()
-                    ),
+                    view.brokenIds().contains(holdingSubLevel.data().uuid()),
                     snapshots,
                     seen
             );
@@ -784,6 +770,72 @@ public final class StoredVehicleRepository {
         snapshots.add(new StoredVehicleSnapshot(data.uuid(), displayName, fullName, position, broken));
     }
 
+    private static StoredVehicleSnapshot snapshotFor(StoredVehicleView view, UUID subLevelId) {
+        StoredSubLevelRecord record = view.records().get(subLevelId);
+        if (record == null || record.data() == null || record.data().uuid() == null) {
+            return null;
+        }
+        SubLevelData data = record.data();
+        Vector3d position = safePosition(data, record.pointer());
+        String fullName = resolveName(data);
+        String displayName = fullName.equals(data.uuid().toString()) ? fullName.substring(0, 14) : fullName;
+        return new StoredVehicleSnapshot(
+                data.uuid(),
+                displayName,
+                fullName,
+                position,
+                view.brokenIds().contains(data.uuid())
+        );
+    }
+
+    private static StoredVehicleView storedVehicleView(
+            ServerSubLevelContainer container
+    ) throws IOException {
+        return storedVehicleView(container, container.getHoldingChunkMap().getStorage());
+    }
+
+    private static StoredVehicleView storedVehicleView(
+            ServerSubLevelContainer container,
+            SubLevelStorage storage
+    ) throws IOException {
+        StoredVehicleIndex.Snapshot index = StoredVehicleIndex.snapshot(storage);
+        Map<UUID, HoldingSubLevel> inMemory = inMemorySubLevels(container);
+        Map<UUID, StoredSubLevelRecord> records = new LinkedHashMap<>();
+        for (Map.Entry<UUID, StoredVehicleIndex.Entry> entry : index.entries().entrySet()) {
+            records.put(entry.getKey(), new StoredSubLevelRecord(
+                    entry.getValue().data(),
+                    entry.getValue().pointer()
+            ));
+        }
+        for (Map.Entry<UUID, HoldingSubLevel> entry : inMemory.entrySet()) {
+            records.put(entry.getKey(), new StoredSubLevelRecord(
+                    entry.getValue().data(),
+                    entry.getValue().pointer()
+            ));
+        }
+
+        Map<UUID, StoredVehicleHealthGraph.Node> nodes = new LinkedHashMap<>();
+        for (Map.Entry<UUID, StoredSubLevelRecord> entry : records.entrySet()) {
+            UUID id = entry.getKey();
+            StoredSubLevelRecord record = entry.getValue();
+            SubLevelData data = record.data();
+            List<UUID> dependencies = data == null ? null : data.dependencies();
+            boolean pointerResolved = record.pointer() == null
+                    ? inMemory.containsKey(id)
+                    : index.resolves(id, record.pointer());
+            nodes.put(id, new StoredVehicleHealthGraph.Node(
+                    isUsableData(data) && dependencies != null && pointerResolved,
+                    dependencies == null ? List.of() : dependencies
+            ));
+        }
+        return new StoredVehicleView(
+                index,
+                Map.copyOf(inMemory),
+                Map.copyOf(records),
+                StoredVehicleHealthGraph.brokenIds(nodes)
+        );
+    }
+
     private static Map<UUID, HoldingSubLevel> inMemorySubLevels(
             ServerSubLevelContainer container
     ) throws IOException {
@@ -800,87 +852,6 @@ public final class StoredVehicleRepository {
         } catch (ReflectiveOperationException | RuntimeException exception) {
             throw new IOException("failed to enumerate in-memory Sable holding sublevels", exception);
         }
-    }
-
-    private static boolean hasBrokenStorageChain(
-            SubLevelStorage storage,
-            StoredVehicleIndex.Snapshot index,
-            Map<UUID, HoldingSubLevel> inMemory,
-            SubLevelData rootData,
-            GlobalSavedSubLevelPointer rootPointer
-    ) {
-        if (rootPointer == null && rootData != null && rootData.uuid() != null) {
-            StoredVehicleIndex.Entry indexedRoot = index.entries().get(rootData.uuid());
-            if (indexedRoot != null) {
-                rootData = indexedRoot.data();
-                rootPointer = indexedRoot.pointer();
-            }
-        }
-        List<StoredSubLevelRecord> queue = new ArrayList<>();
-        Set<UUID> visited = new HashSet<>();
-        queue.add(new StoredSubLevelRecord(rootData, rootPointer));
-        for (int i = 0; i < queue.size(); i++) {
-            StoredSubLevelRecord record = queue.get(i);
-            SubLevelData data = record.data();
-            if (!isUsableData(data)) {
-                return true;
-            }
-            if (!visited.add(data.uuid())) {
-                continue;
-            }
-            boolean heldInMemory = inMemory.containsKey(data.uuid());
-            if (record.pointer() == null) {
-                // Sable publishes holding data before its first persistence pass assigns a storage pointer.
-                if (!heldInMemory) {
-                    return true;
-                }
-            } else if (!pointerResolves(storage, data.uuid(), record.pointer())) {
-                return true;
-            }
-            List<UUID> dependencies = data.dependencies();
-            if (dependencies == null) {
-                return true;
-            }
-            for (UUID dependency : dependencies) {
-                if (dependency == null || visited.contains(dependency)) {
-                    if (dependency == null) {
-                        return true;
-                    }
-                    continue;
-                }
-                StoredSubLevelRecord dependencyRecord = resolveRecord(dependency, inMemory, index);
-                if (dependencyRecord == null) {
-                    return true;
-                }
-                queue.add(dependencyRecord);
-            }
-        }
-        return false;
-    }
-
-    private static StoredSubLevelRecord resolveRecord(
-            UUID subLevelId,
-            Map<UUID, HoldingSubLevel> inMemory,
-            StoredVehicleIndex.Snapshot index
-    ) {
-        HoldingSubLevel holdingSubLevel = inMemory.get(subLevelId);
-        if (holdingSubLevel != null) {
-            return new StoredSubLevelRecord(holdingSubLevel.data(), holdingSubLevel.pointer());
-        }
-        StoredVehicleIndex.Entry entry = index.entries().get(subLevelId);
-        return entry == null ? null : new StoredSubLevelRecord(entry.data(), entry.pointer());
-    }
-
-    private static boolean pointerResolves(
-            SubLevelStorage storage,
-            UUID expectedId,
-            GlobalSavedSubLevelPointer pointer
-    ) {
-        if (pointer == null) {
-            return false;
-        }
-        SubLevelData stored = storage.attemptLoadSubLevel(pointer.chunkPos(), pointer.local());
-        return stored != null && expectedId.equals(stored.uuid());
     }
 
     private static boolean isUsableData(SubLevelData data) {
@@ -949,10 +920,15 @@ public final class StoredVehicleRepository {
         return entry == null ? null : new StoredSubLevelRecord(entry.data(), entry.pointer());
     }
 
-    private record StoredQueryCache(long createdAtMillis, List<StoredVehicleSnapshot> snapshots) {
+    private record StoredSubLevelRecord(SubLevelData data, GlobalSavedSubLevelPointer pointer) {
     }
 
-    private record StoredSubLevelRecord(SubLevelData data, GlobalSavedSubLevelPointer pointer) {
+    private record StoredVehicleView(
+            StoredVehicleIndex.Snapshot index,
+            Map<UUID, HoldingSubLevel> inMemory,
+            Map<UUID, StoredSubLevelRecord> records,
+            Set<UUID> brokenIds
+    ) {
     }
 
     private record RecoveryWrite(

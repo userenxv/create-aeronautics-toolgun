@@ -10,6 +10,7 @@ import com.enxv.aeronauticsstructuretool.client.screen.NearbyVehicleQueryState;
 import com.enxv.aeronauticsstructuretool.client.screen.StructurePreviewRenderer;
 import com.enxv.aeronauticsstructuretool.client.screen.StructurePreviewViewState;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.InfiniteRangeToggle;
+import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.RadarToggle;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.SearchField;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeMenuModel.LeftTab;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeMenuModel.ToolEntry;
@@ -17,6 +18,7 @@ import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeMenuMode
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -236,8 +238,13 @@ public final class ToolModePanelRenderer {
             ToolModeVehicleQueryController query,
             StructurePreviewViewState previewView,
             InfiniteRangeToggle infiniteToggle,
+            RadarToggle radarToggle,
+            ToolModeVehicleRadar radar,
+            boolean radarView,
             boolean survivalRestricted,
             int hoveredVehicleIndex,
+            LocalPlayer player,
+            int radarRange,
             double mouseX,
             double mouseY
     ) {
@@ -257,30 +264,58 @@ public final class ToolModePanelRenderer {
                 || ClientToolState.nearbyQueryRangeForTool(false) != ClientToolState.INFINITE_NEARBY_QUERY_RANGE) {
             graphics.drawString(this.font, Component.translatable("screen.create_aeronautics_toolgun.query.blocks"), split + 104, top + 59, TEXT_MUTED, false);
         }
-        graphics.fill(listLeft, top + 78, listRight, top + 176, PANEL_DARK);
         graphics.fill(detailLeft, top + 54, detailRight, top + 176, PANEL_DARK);
 
-        int pageStart = query.page() * FILES_PER_PAGE;
-        int pageEnd = Math.min(pageStart + FILES_PER_PAGE, query.entries().size());
-        if (query.entries().isEmpty()) {
-            graphics.drawString(this.font, Component.translatable("screen.create_aeronautics_toolgun.query.none"), split + 26, top + 86, TEXT_MUTED, false);
+        if (radarView) {
+            radar.render(
+                    graphics,
+                    this.font,
+                    layout,
+                    query.entries(),
+                    query.state().selectedId(),
+                    hoveredVehicleIndex,
+                    player,
+                    radarRange
+            );
         } else {
-            for (int index = pageStart; index < pageEnd; index++) {
-                int rowTop = top + 82 + (index - pageStart) * 16;
-                NearbyVehicleQueryState.Entry entry = query.entries().get(index);
-                boolean selected = query.isSelected(entry);
-                drawSelectionRow(graphics, listLeft + 2, listRight - 4, rowTop, selected, index == hoveredVehicleIndex);
-                int summaryWidth = Math.min(64, Math.max(0, layout.queryListWidth() - 104));
-                int rowColor = entry.broken() ? TEXT_ERROR : selected ? TEXT_PRIMARY : TEXT_MUTED;
-                graphics.drawString(this.font, this.font.plainSubstrByWidth(entry.displayName(), Math.max(40, layout.queryListWidth() - summaryWidth - 30)), listLeft + 8, rowTop, rowColor, false);
-                if (summaryWidth > 0) {
-                    graphics.drawString(this.font, this.font.plainSubstrByWidth(entry.summary(), summaryWidth), listRight - summaryWidth - 6, rowTop, rowColor, false);
-                }
-            }
+            renderVehicleList(graphics, layout, query, hoveredVehicleIndex, listLeft, listRight, top);
         }
         renderSelectedVehicle(graphics, query, previewView, detailLeft, top + 54, detailRight - detailLeft, 122);
         infiniteToggle.render(graphics, this.font, mouseX, mouseY);
-        graphics.drawCenteredString(this.font, Component.literal((query.page() + 1) + " / " + query.pageCount()), layout.footerPageCenterX(), layout.footerTextY(), TEXT_MUTED);
+        radarToggle.render(graphics, this.font, mouseX, mouseY);
+        if (!radarView) {
+            graphics.drawCenteredString(this.font, Component.literal((query.page() + 1) + " / " + query.pageCount()), layout.footerPageCenterX(), layout.footerTextY(), TEXT_MUTED);
+        }
+    }
+
+    private void renderVehicleList(
+            GuiGraphics graphics,
+            ToolModeLayout layout,
+            ToolModeVehicleQueryController query,
+            int hoveredVehicleIndex,
+            int listLeft,
+            int listRight,
+            int top
+    ) {
+        graphics.fill(listLeft, top + 78, listRight, top + 176, PANEL_DARK);
+        int pageStart = query.page() * FILES_PER_PAGE;
+        int pageEnd = Math.min(pageStart + FILES_PER_PAGE, query.entries().size());
+        if (query.entries().isEmpty()) {
+            graphics.drawString(this.font, Component.translatable("screen.create_aeronautics_toolgun.query.none"), listLeft + 8, top + 86, TEXT_MUTED, false);
+            return;
+        }
+        for (int index = pageStart; index < pageEnd; index++) {
+            int rowTop = top + 82 + (index - pageStart) * 16;
+            NearbyVehicleQueryState.Entry entry = query.entries().get(index);
+            boolean selected = query.isSelected(entry);
+            drawSelectionRow(graphics, listLeft + 2, listRight - 4, rowTop, selected, index == hoveredVehicleIndex);
+            int summaryWidth = Math.min(64, Math.max(0, layout.queryListWidth() - 104));
+            int rowColor = entry.broken() ? TEXT_ERROR : selected ? TEXT_PRIMARY : TEXT_MUTED;
+            graphics.drawString(this.font, this.font.plainSubstrByWidth(entry.displayName(), Math.max(40, layout.queryListWidth() - summaryWidth - 30)), listLeft + 8, rowTop, rowColor, false);
+            if (summaryWidth > 0) {
+                graphics.drawString(this.font, this.font.plainSubstrByWidth(entry.summary(), summaryWidth), listRight - summaryWidth - 6, rowTop, rowColor, false);
+            }
+        }
     }
 
     public void renderToolPanel(

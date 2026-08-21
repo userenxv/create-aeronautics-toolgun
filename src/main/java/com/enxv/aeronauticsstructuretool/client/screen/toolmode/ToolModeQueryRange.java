@@ -3,9 +3,6 @@ package com.enxv.aeronauticsstructuretool.client.screen.toolmode;
 import com.enxv.aeronauticsstructuretool.ClientToolState;
 
 public final class ToolModeQueryRange {
-    private static final long NEARBY_REFRESH_INTERVAL_MS = 1000L;
-    private static final long INFINITE_NEARBY_REFRESH_INTERVAL_MS = 5000L;
-
     private ToolModeQueryRange() {
     }
 
@@ -35,11 +32,5 @@ public final class ToolModeQueryRange {
 
     public static String format(int range) {
         return range == ClientToolState.INFINITE_NEARBY_QUERY_RANGE ? "0" : Integer.toString(range);
-    }
-
-    public static long refreshIntervalMillis(int range) {
-        return range == ClientToolState.INFINITE_NEARBY_QUERY_RANGE
-                ? INFINITE_NEARBY_REFRESH_INTERVAL_MS
-                : NEARBY_REFRESH_INTERVAL_MS;
     }
 }

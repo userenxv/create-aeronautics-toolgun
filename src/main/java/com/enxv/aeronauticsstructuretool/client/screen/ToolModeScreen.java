@@ -10,6 +10,8 @@ import com.enxv.aeronauticsstructuretool.ToolPanel;
 import com.enxv.aeronauticsstructuretool.blueprint.storage.ClientBlueprintCatalog;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.InfiniteRangeToggle;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.PanelButton;
+import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.RadarToggle;
+import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.ToolbarButton;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeControls.SearchField;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeLayout;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeBlueprintBrowser;
@@ -19,6 +21,7 @@ import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeMenuMode
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeMenuModel.ToolEntry;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeQueryRange;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeVehicleQueryController;
+import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModeVehicleRadar;
 import com.enxv.aeronauticsstructuretool.client.screen.toolmode.ToolModePanelRenderer;
 
 import net.minecraft.client.Minecraft;
@@ -58,11 +61,13 @@ public final class ToolModeScreen extends Screen {
     private Button queryDeleteButton;
     private Button queryRefreshButton;
     private InfiniteRangeToggle infiniteQueryToggle;
+    private RadarToggle radarQueryToggle;
     private EditBox nearbyRangeBox;
     private SearchField blueprintSearchBox;
     private final ToolModeBlueprintBrowser blueprintBrowser = new ToolModeBlueprintBrowser();
     private final StructurePreviewViewState previewView = new StructurePreviewViewState();
     private final ToolModeVehicleQueryController vehicleQuery = new ToolModeVehicleQueryController();
+    private final ToolModeVehicleRadar vehicleRadar = new ToolModeVehicleRadar();
     private ToolModePanelRenderer panelRenderer;
     private ToolModeLayout layout;
     private int hoveredLeftIndex = -1;
@@ -74,6 +79,7 @@ public final class ToolModeScreen extends Screen {
     private double lastMouseX;
     private double lastMouseY;
     private boolean survivalRestricted;
+    private boolean radarQueryView;
 
     public ToolModeScreen() {
         super(Component.translatable("itemGroup.create_aeronautics_toolgun.main"));
@@ -111,12 +117,18 @@ public final class ToolModeScreen extends Screen {
         this.queryRecoverButton = this.addRenderableWidget(new PanelButton(this.font, 0, 0, QUERY_ACTION_BUTTON_WIDTH, QUERY_ACTION_BUTTON_HEIGHT, Component.translatable("screen.create_aeronautics_toolgun.query.recover"), button -> openSelectedVehicleRecovery()));
         this.queryRenameButton = this.addRenderableWidget(new PanelButton(this.font, 0, 0, QUERY_ACTION_BUTTON_WIDTH, QUERY_ACTION_BUTTON_HEIGHT, Component.translatable("screen.create_aeronautics_toolgun.query.rename"), button -> openSelectedVehicleRename()));
         this.queryDeleteButton = this.addRenderableWidget(new PanelButton(this.font, 0, 0, QUERY_ACTION_BUTTON_WIDTH, QUERY_ACTION_BUTTON_HEIGHT, Component.translatable("screen.create_aeronautics_toolgun.query.delete"), button -> openSelectedVehicleDelete()));
-        this.queryRefreshButton = this.addRenderableWidget(new PanelButton(this.font, 0, 0, 44, 16, Component.translatable("screen.create_aeronautics_toolgun.query.refresh"), button -> refreshNearbyVehicles()));
+        this.queryRefreshButton = this.addRenderableWidget(new ToolbarButton(this.font, 0, 0, 54, 18, Component.translatable("screen.create_aeronautics_toolgun.query.refresh"), button -> refreshNearbyVehicles()));
         this.infiniteQueryToggle = new InfiniteRangeToggle(
                 splitX() + 130,
                 top + 56,
                 this::isInfiniteQueryRange,
                 this::toggleInfiniteQueryRange
+        );
+        this.radarQueryToggle = new RadarToggle(
+                0,
+                0,
+                () -> this.radarQueryView,
+                this::toggleRadarQueryView
         );
         this.nearbyRangeBox = new EditBox(this.font, splitX() + 22, top + 56, 72, 16, Component.translatable("screen.create_aeronautics_toolgun.query.range"));
         this.nearbyRangeBox.setBordered(false);
@@ -139,11 +151,12 @@ public final class ToolModeScreen extends Screen {
             if (!value.equals(normalized)) {
                 this.nearbyRangeBox.setValue(normalized);
             }
-            refreshNearbyVehicles();
         });
         this.addRenderableWidget(this.nearbyRangeBox);
         this.blueprintSearchBox = new SearchField(splitX() + 21, top + 56, 152, 16, this::syncLoadPageToSelection);
-        refreshNearbyVehicles();
+        if (showingQuery()) {
+            refreshNearbyVehicles();
+        }
         refreshButtons();
         layoutButtons();
     }
@@ -292,7 +305,9 @@ public final class ToolModeScreen extends Screen {
 
     private void refreshButtons() {
         applyCurrentLayout();
-        boolean visible = currentLeftTab() == LeftTab.LOAD || showingTools() || showingQuery();
+        boolean visible = currentLeftTab() == LeftTab.LOAD
+                || showingTools()
+                || showingQuery() && !this.radarQueryView;
         this.prevButton.visible = visible;
         this.nextButton.visible = visible;
         this.prevButton.active = visible;
@@ -310,6 +325,7 @@ public final class ToolModeScreen extends Screen {
         this.queryRefreshButton.active = showingQuery();
         boolean showInfiniteToggle = showingQuery() && !this.survivalRestricted;
         this.infiniteQueryToggle.setVisible(showInfiniteToggle);
+        this.radarQueryToggle.setVisible(showingQuery());
         if (!showingQuery()) {
             this.nearbyRangeBox.setFocused(false);
         }
@@ -327,8 +343,11 @@ public final class ToolModeScreen extends Screen {
         if (this.infiniteQueryToggle != null) {
             this.infiniteQueryToggle.setPosition(splitX() + 128, windowTop() + 56);
         }
+        if (this.radarQueryToggle != null) {
+            this.radarQueryToggle.setPosition(rightPanelRight() - RadarToggle.WIDTH - 62, windowTop() + 29);
+        }
         if (this.queryRefreshButton != null) {
-            this.queryRefreshButton.setPosition(rightPanelLeft() + Math.max(88, queryListWidth() - 30), windowTop() + 30);
+            this.queryRefreshButton.setPosition(rightPanelRight() - 54, windowTop() + 28);
         }
     }
 
@@ -382,7 +401,7 @@ public final class ToolModeScreen extends Screen {
             this.toolPage = Math.floorMod(this.toolPage + delta, Math.max(1, toolPageCount()));
             return;
         }
-        if (showingQuery()) {
+        if (showingQuery() && !this.radarQueryView) {
             this.vehicleQuery.changePage(delta);
         }
     }
@@ -434,10 +453,6 @@ public final class ToolModeScreen extends Screen {
         int right = left + windowWidth();
         int bottom = top + windowHeight();
         int split = splitX();
-        if (showingQuery()) {
-            refreshNearbyVehiclesIfDue();
-        }
-
         this.hoveredLeftIndex = getLeftIndexAt(mouseX, mouseY);
         this.hoveredFileIndex = currentLeftTab() == LeftTab.LOAD ? getFileIndexAt(mouseX, mouseY) : -1;
         this.hoveredToolIndex = showingTools() ? getToolIndexAt(mouseX, mouseY) : -1;
@@ -470,8 +485,13 @@ public final class ToolModeScreen extends Screen {
                     this.vehicleQuery,
                     this.previewView,
                     this.infiniteQueryToggle,
+                    this.radarQueryToggle,
+                    this.vehicleRadar,
+                    this.radarQueryView,
                     this.survivalRestricted,
                     this.hoveredVehicleIndex,
+                    this.minecraft == null ? null : this.minecraft.player,
+                    ClientToolState.nearbyQueryRangeForTool(this.survivalRestricted),
                     this.lastMouseX,
                     this.lastMouseY
             );
@@ -510,6 +530,9 @@ public final class ToolModeScreen extends Screen {
                 return this.nearbyRangeBox.mouseClicked(mouseX, mouseY, button);
             }
             if (showingQuery() && this.infiniteQueryToggle.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+            if (showingQuery() && this.radarQueryToggle.mouseClicked(mouseX, mouseY, button)) {
                 return true;
             }
             int clickedLeft = getLeftIndexAt(mouseX, mouseY);
@@ -779,6 +802,11 @@ public final class ToolModeScreen extends Screen {
                 && ClientToolState.nearbyQueryRangeForTool(false) == ClientToolState.INFINITE_NEARBY_QUERY_RANGE;
     }
 
+    private void toggleRadarQueryView() {
+        this.radarQueryView = !this.radarQueryView;
+        refreshButtons();
+    }
+
     private int getLeftIndexAt(double mouseX, double mouseY) {
         return ToolModeHitTest.leftTabIndex(
                 currentLayout(),
@@ -833,6 +861,16 @@ public final class ToolModeScreen extends Screen {
     }
 
     private int getNearbyVehicleIndexAt(double mouseX, double mouseY) {
+        if (this.radarQueryView) {
+            return this.vehicleRadar.entryIndexAt(
+                    currentLayout(),
+                    this.vehicleQuery.entries(),
+                    this.minecraft == null ? null : this.minecraft.player,
+                    ClientToolState.nearbyQueryRangeForTool(this.survivalRestricted),
+                    mouseX,
+                    mouseY
+            );
+        }
         return ToolModeHitTest.vehicleIndex(
                 currentLayout(),
                 showingQuery(),
@@ -884,13 +922,6 @@ public final class ToolModeScreen extends Screen {
     protected void repositionElements() {
         super.repositionElements();
         applyCurrentLayout();
-    }
-
-    private void refreshNearbyVehiclesIfDue() {
-        this.vehicleQuery.refreshIfDue(
-                this.minecraft,
-                ClientToolState.nearbyQueryRangeForTool(this.survivalRestricted)
-        );
     }
 
     public static void receiveQueriedVehicles(SyncQueryVehiclesPayload payload) {
