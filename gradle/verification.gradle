@@ -131,6 +131,21 @@ verificationJavaExec(
         'Check the exact recurring-tick contracts restored for mianbao ModernWarfare blocks.',
         'com.enxv.aeronauticsstructuretool.compat.mianbao.MianbaoModernWarfareCompatRegressionCheck'
 )
+verificationJavaExec(
+        'verifyHydraulicHingeCoordinates',
+        'Check current and legacy hydraulic hinge Plot coordinate mapping.',
+        'com.enxv.aeronauticsstructuretool.compat.aeronautics.HydraulicHingeCoordinateRegressionCheck'
+)
+verificationJavaExec(
+        'verifySableBlueprintFrameCoordinates',
+        'Check format 1 and 2 Sable Blueprint API frame origins during native placement.',
+        'com.enxv.aeronauticsstructuretool.compat.sableschematicapi.SableBlueprintFrameCoordinatesRegressionCheck'
+)
+verificationJavaExec(
+        'verifyStoredVehicleHealthGraph',
+        'Check linear stored-vehicle dependency health classification and propagation.',
+        'com.enxv.aeronauticsstructuretool.vehicle.storage.StoredVehicleHealthGraphRegressionCheck'
+)
 
 def compatibilitySymbols = verificationJavaExec(
         'verifyCompatibilitySymbols',
@@ -176,5 +191,8 @@ tasks.named('check').configure {
     dependsOn tasks.named('verifyMissingBiomeFallback')
     dependsOn tasks.named('verifyMagneticDragControl')
     dependsOn tasks.named('verifyMianbaoModernWarfareCompat')
+    dependsOn tasks.named('verifyHydraulicHingeCoordinates')
+    dependsOn tasks.named('verifySableBlueprintFrameCoordinates')
+    dependsOn tasks.named('verifyStoredVehicleHealthGraph')
     dependsOn tasks.named('verifyCompatibilitySymbols')
 }

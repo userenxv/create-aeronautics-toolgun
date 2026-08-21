@@ -3,6 +3,7 @@ package com.enxv.aeronauticsstructuretool.compat.aeronautics;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.FlexibleBlockPosCodec;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.LinkedBlockReferenceRemapper;
 import com.enxv.aeronauticsstructuretool.blueprint.model.CapturePlan;
+import com.enxv.aeronauticsstructuretool.blueprint.model.CapturedSubLevel;
 import com.enxv.aeronauticsstructuretool.blueprint.model.LoadedSubLevel;
 import net.minecraft.nbt.CompoundTag;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 public final class AeronauticsLinkBlueprintCompat {
     private static final String LEGACY_UNIVERSAL_JOINT_ID = "aero_universal_joint:universal_joint";
+    private static final String LEGACY_HYDRAULIC_HEAD_ID = "aero_universal_joint:hydraulic_connection_head";
     private static final String UNIVERSAL_JOINT_ID = "aeronautics_utility_objects:universal_joint";
     private static final String HYDRAULIC_HEAD_ID = "aeronautics_utility_objects:hydraulic_connection_head";
     private static final String LINKED_POS_TAG = "LinkedPos";
@@ -21,11 +23,17 @@ public final class AeronauticsLinkBlueprintCompat {
 
     public static boolean supports(String blockEntityId) {
         return LEGACY_UNIVERSAL_JOINT_ID.equals(blockEntityId)
+                || LEGACY_HYDRAULIC_HEAD_ID.equals(blockEntityId)
                 || UNIVERSAL_JOINT_ID.equals(blockEntityId)
                 || HYDRAULIC_HEAD_ID.equals(blockEntityId);
     }
 
-    public static void remapForSave(CompoundTag tag, CapturePlan plan) {
+    public static void remapForSave(
+            String blockEntityId,
+            CompoundTag tag,
+            CapturePlan plan,
+            CapturedSubLevel currentSubLevel
+    ) {
         LinkedBlockReferenceRemapper.remapForSave(
                 tag,
                 LINKED_POS_TAG,
@@ -34,9 +42,13 @@ public final class AeronauticsLinkBlueprintCompat {
                 FlexibleBlockPosCodec.Encoding.NBT_BLOCK_POS,
                 "Aeronautics linked connection"
         );
+        if (isHydraulicHead(blockEntityId)) {
+            HydraulicHingeBlueprintCompat.remapForSave(tag, plan, currentSubLevel);
+        }
     }
 
     public static void remapForLoad(
+            String blockEntityId,
             CompoundTag tag,
             Map<UUID, LoadedSubLevel> loadedSublevels,
             LoadedSubLevel currentSubLevel
@@ -51,5 +63,13 @@ public final class AeronauticsLinkBlueprintCompat {
                 true,
                 "Aeronautics linked connection"
         );
+        if (isHydraulicHead(blockEntityId)) {
+            HydraulicHingeBlueprintCompat.remapForLoad(tag, loadedSublevels, currentSubLevel);
+        }
+    }
+
+    private static boolean isHydraulicHead(String blockEntityId) {
+        return LEGACY_HYDRAULIC_HEAD_ID.equals(blockEntityId)
+                || HYDRAULIC_HEAD_ID.equals(blockEntityId);
     }
 }

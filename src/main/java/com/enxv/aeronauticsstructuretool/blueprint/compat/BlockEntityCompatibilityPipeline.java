@@ -47,7 +47,7 @@ public final class BlockEntityCompatibilityPipeline {
             } else if (SimulatedDockingBlueprintCompat.BLOCK_ENTITY_ID.equals(id)) {
                 SimulatedDockingBlueprintCompat.remapForSave(tag, plan, currentSubLevel);
             } else if (AeronauticsLinkBlueprintCompat.supports(id)) {
-                AeronauticsLinkBlueprintCompat.remapForSave(tag, plan);
+                AeronauticsLinkBlueprintCompat.remapForSave(id, tag, plan, currentSubLevel);
             } else if (CreateBlueprintCompat.BELT_BLOCK_ENTITY_ID.equals(id)) {
                 CreateBlueprintCompat.remapBeltForSave(tag, currentSubLevel);
             }
@@ -71,7 +71,7 @@ public final class BlockEntityCompatibilityPipeline {
             } else if (SimulatedDockingBlueprintCompat.BLOCK_ENTITY_ID.equals(id)) {
                 SimulatedDockingBlueprintCompat.remapForLoad(tag, loadedSublevels, currentSubLevel);
             } else if (AeronauticsLinkBlueprintCompat.supports(id)) {
-                AeronauticsLinkBlueprintCompat.remapForLoad(tag, loadedSublevels, currentSubLevel);
+                AeronauticsLinkBlueprintCompat.remapForLoad(id, tag, loadedSublevels, currentSubLevel);
             } else if (CreateBlueprintCompat.BELT_BLOCK_ENTITY_ID.equals(id)) {
                 CreateBlueprintCompat.remapBeltForLoad(tag, currentSubLevel);
             }

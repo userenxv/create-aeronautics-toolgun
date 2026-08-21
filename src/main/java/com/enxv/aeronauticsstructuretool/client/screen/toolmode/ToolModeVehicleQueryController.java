@@ -18,7 +18,6 @@ public final class ToolModeVehicleQueryController {
 
     private final NearbyVehicleQueryState state = new NearbyVehicleQueryState();
     private int page;
-    private long nextRefreshMillis;
     private boolean queryInFlight;
 
     public NearbyVehicleQueryState state() {
@@ -56,14 +55,7 @@ public final class ToolModeVehicleQueryController {
         requestSelectedPreview(minecraft, previewView);
     }
 
-    public void refreshIfDue(Minecraft minecraft, int range) {
-        if (System.currentTimeMillis() >= this.nextRefreshMillis) {
-            refresh(minecraft, range);
-        }
-    }
-
     public void refresh(Minecraft minecraft, int range) {
-        this.nextRefreshMillis = System.currentTimeMillis() + ToolModeQueryRange.refreshIntervalMillis(range);
         if (this.queryInFlight) {
             return;
         }

@@ -89,6 +89,7 @@ final class StoredVehicleIndex {
 
     private static Snapshot scan(SubLevelStorage storage, List<RegionFile> regionFiles) {
         Map<UUID, Entry> entries = new LinkedHashMap<>();
+        Map<GlobalSavedSubLevelPointer, UUID> resolvedPointers = new HashMap<>();
         for (RegionFile region : regionFiles) {
             int chunkBaseX = region.regionX() << 5;
             int chunkBaseZ = region.regionZ() << 5;
@@ -122,6 +123,7 @@ final class StoredVehicleIndex {
                             );
                             continue;
                         }
+                        resolvedPointers.put(globalPointer, data.uuid());
                         entries.put(data.uuid(), new Entry(
                                 data,
                                 globalPointer
@@ -130,13 +132,19 @@ final class StoredVehicleIndex {
                 }
             }
         }
-        return new Snapshot(Map.copyOf(entries));
+        return new Snapshot(Map.copyOf(entries), Map.copyOf(resolvedPointers));
     }
 
     record Entry(SubLevelData data, GlobalSavedSubLevelPointer pointer) {
     }
 
-    record Snapshot(Map<UUID, Entry> entries) {
+    record Snapshot(
+            Map<UUID, Entry> entries,
+            Map<GlobalSavedSubLevelPointer, UUID> resolvedPointers
+    ) {
+        boolean resolves(UUID expectedId, GlobalSavedSubLevelPointer pointer) {
+            return expectedId != null && expectedId.equals(this.resolvedPointers.get(pointer));
+        }
     }
 
     private record RegionFile(int regionX, int regionZ) {

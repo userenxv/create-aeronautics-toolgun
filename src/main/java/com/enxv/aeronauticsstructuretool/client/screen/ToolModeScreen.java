@@ -139,11 +139,12 @@ public final class ToolModeScreen extends Screen {
             if (!value.equals(normalized)) {
                 this.nearbyRangeBox.setValue(normalized);
             }
-            refreshNearbyVehicles();
         });
         this.addRenderableWidget(this.nearbyRangeBox);
         this.blueprintSearchBox = new SearchField(splitX() + 21, top + 56, 152, 16, this::syncLoadPageToSelection);
-        refreshNearbyVehicles();
+        if (showingQuery()) {
+            refreshNearbyVehicles();
+        }
         refreshButtons();
         layoutButtons();
     }
@@ -434,10 +435,6 @@ public final class ToolModeScreen extends Screen {
         int right = left + windowWidth();
         int bottom = top + windowHeight();
         int split = splitX();
-        if (showingQuery()) {
-            refreshNearbyVehiclesIfDue();
-        }
-
         this.hoveredLeftIndex = getLeftIndexAt(mouseX, mouseY);
         this.hoveredFileIndex = currentLeftTab() == LeftTab.LOAD ? getFileIndexAt(mouseX, mouseY) : -1;
         this.hoveredToolIndex = showingTools() ? getToolIndexAt(mouseX, mouseY) : -1;
@@ -884,13 +881,6 @@ public final class ToolModeScreen extends Screen {
     protected void repositionElements() {
         super.repositionElements();
         applyCurrentLayout();
-    }
-
-    private void refreshNearbyVehiclesIfDue() {
-        this.vehicleQuery.refreshIfDue(
-                this.minecraft,
-                ClientToolState.nearbyQueryRangeForTool(this.survivalRestricted)
-        );
     }
 
     public static void receiveQueriedVehicles(SyncQueryVehiclesPayload payload) {

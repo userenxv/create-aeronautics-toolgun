@@ -217,12 +217,11 @@ final class SableBlueprintApiCompatImpl {
     }
 
     private static BlockPos placedOrigin(LoadedSubLevel loaded, CompoundTag frame) {
-        int[] bounds = frame.getIntArray(STORAGE_BOUNDS_TAG);
-        int[] origin = frame.getIntArray(BLOCKS_ORIGIN_TAG);
-        if (bounds.length != 6 || origin.length != 3) {
-            throw new IllegalArgumentException("Sable weld frame bounds are malformed");
-        }
-        return LoadedSubLevelCoordinates.toGlobalBlockPos(loaded, BlockPos.ZERO);
+        BlockPos savedLocalOrigin = SableBlueprintFrameCoordinates.savedLocalOrigin(
+                frame,
+                loaded.saved().plotTag()
+        );
+        return LoadedSubLevelCoordinates.toGlobalBlockPos(loaded, savedLocalOrigin);
     }
 
     private static UUID requireUuid(CompoundTag tag, String key) {
