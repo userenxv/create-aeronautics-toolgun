@@ -170,7 +170,7 @@ public final class MaterialCountCodec {
             addItemIfPresent(compound, itemCounts);
             for (String key : compound.getAllKeys()) {
                 switch (key) {
-                    case "FrequencyFirst", "FrequencyLast": continue;
+                    case "FrequencyFirst", "FrequencyLast", "consumedItem": continue;
                     case "Filter": {
                         CompoundTag item = compound.getCompound(key);
                         switch (item.getString("id")) {
@@ -182,6 +182,12 @@ public final class MaterialCountCodec {
                                 continue;
                             }
                         }
+                    }
+                    case "material": { //copycats
+                        CompoundTag material = new CompoundTag();
+                        material.putString("id", compound.getCompound(key).getString("Name"));
+                        material.putInt("count", 1);
+                        addItemIfPresent(material, itemCounts);
                     }
                 }
                 scanItems(compound.get(key), itemCounts, depth + 1);
