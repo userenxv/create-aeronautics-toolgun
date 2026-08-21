@@ -52,6 +52,12 @@ public final class ToolModeVehicleQueryController {
 
     public void select(UUID id, Minecraft minecraft, StructurePreviewViewState previewView) {
         this.state.select(id);
+        for (int index = 0; index < this.state.entries().size(); index++) {
+            if (this.state.entries().get(index).id().equals(id)) {
+                this.page = index / ENTRIES_PER_PAGE;
+                break;
+            }
+        }
         requestSelectedPreview(minecraft, previewView);
     }
 
