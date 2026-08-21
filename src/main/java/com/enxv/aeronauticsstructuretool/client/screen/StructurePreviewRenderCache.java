@@ -23,9 +23,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -389,17 +391,17 @@ final class StructurePreviewRenderCache implements AutoCloseable {
 
         @Override
         public @Nullable BlockEntity getBlockEntity(BlockPos pos) {
-            return pos.equals(this.renderPos) ? this.blockEntity : this.delegate.getBlockEntity(pos);
+            return pos.equals(this.renderPos) ? this.blockEntity : null;
         }
 
         @Override
         public BlockState getBlockState(BlockPos pos) {
-            return pos.equals(this.renderPos) ? this.renderState : this.delegate.getBlockState(pos);
+            return pos.equals(this.renderPos) ? this.renderState : Blocks.AIR.defaultBlockState();
         }
 
         @Override
         public FluidState getFluidState(BlockPos pos) {
-            return pos.equals(this.renderPos) ? this.renderState.getFluidState() : this.delegate.getFluidState(pos);
+            return pos.equals(this.renderPos) ? this.renderState.getFluidState() : Fluids.EMPTY.defaultFluidState();
         }
 
         @Override
