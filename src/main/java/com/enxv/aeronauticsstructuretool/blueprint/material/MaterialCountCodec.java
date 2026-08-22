@@ -170,7 +170,10 @@ public final class MaterialCountCodec {
             addItemIfPresent(compound, itemCounts);
             for (String key : compound.getAllKeys()) {
                 switch (key) {
-                    case "FrequencyFirst", "FrequencyLast", "consumedItem": continue;
+                    case "FrequencyFirst", "FrequencyLast", //redstone link
+                         "consumedItem", //copycats
+                         "FirstItem", "SecondItem", //linked typewriter
+                         "ControllerData": continue; //tweaked controller
                     case "Filter": {
                         CompoundTag item = compound.getCompound(key);
                         switch (item.getString("id")) {
