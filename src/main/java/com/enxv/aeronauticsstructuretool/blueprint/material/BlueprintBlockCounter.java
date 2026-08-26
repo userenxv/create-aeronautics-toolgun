@@ -132,7 +132,7 @@ final class BlueprintBlockCounter {
                     continue;
                 }
                 default: {
-                    if (fullName.contains("bed") && block.state().getValue(BedBlock.PART) == BedPart.FOOT) continue;
+                    if (fullName.contains("_bed") && block.state().getValue(BedBlock.PART) == BedPart.FOOT) continue;
                     if (fullName.contains("_door") && block.state().getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) continue;
                     if (fullName.contains("_slab") && block.state().getValue(SlabBlock.TYPE) == SlabType.DOUBLE) {
                         mergeBlock(id.toString(), blockCounts, "plot block " + block.blockPos().toShortString());
