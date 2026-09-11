@@ -13,7 +13,7 @@ public record BlueprintLoadUploadRequest(
         double hitX,
         double hitY,
         double hitZ,
-        int rotationDegrees,
+        double rotationDegrees,
         int scalePercent,
         int offsetX,
         int offsetY,

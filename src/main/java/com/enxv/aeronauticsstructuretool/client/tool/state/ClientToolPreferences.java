@@ -14,9 +14,9 @@ public final class ClientToolPreferences {
     public static final int DEFAULT_CREATIVE_NEARBY_QUERY_RANGE = INFINITE_NEARBY_QUERY_RANGE;
     public static final int DEFAULT_SURVIVAL_NEARBY_QUERY_RANGE = 64;
 
-    static final int[] ROTATION_STEPS = {1, 5, 10, 15, 30, 45, 90};
-    static final double[] TRANSLATE_STEPS = {0.1D, 0.25D, 0.5D, 1.0D, 2.0D, 4.0D};
-    static final double[] WELD_ADJUST_STEPS = {0.05D, 0.1D, 0.25D, 0.5D, 1.0D};
+    static final double[] ROTATION_STEPS = {1D, 5D, 10D, 15D , 22.5D, 30D, 45D, 90D};
+    static final double[] TRANSLATE_STEPS = {0.0625D, 0.125D, 0.25D, 0.5D, 1.0D, 2.0D, 4.0D};
+    static final double[] WELD_ADJUST_STEPS = {0.0625D, 0.125D, 0.25D, 0.5D, 1.0D};
 
     ToolMode mode = ToolMode.SAVE;
     ToolPanel panel = ToolPanel.BLUEPRINTS;
@@ -31,9 +31,9 @@ public final class ClientToolPreferences {
     BearingAxisMode bearingAxisMode = BearingAxisMode.AUTO;
     WeldSelectionMode weldSelectionMode = WeldSelectionMode.FACE_POINTS;
     PlacementSnapMode snapMode = PlacementSnapMode.LEGACY;
-    int rotationStep = 15;
+    double rotationStep = 15D;
     double translateStep = 0.25D;
-    int rotationDegrees;
+    double rotationDegrees;
     double weldAdjustStep = 0.25D;
     int scalePercent = 100;
     int offsetX;
@@ -147,11 +147,11 @@ public final class ClientToolPreferences {
         this.snapMode = delta >= 0 ? this.snapMode.next() : this.snapMode.previous();
     }
 
-    public int rotationStep() {
+    public double rotationStep() {
         return this.rotationStep;
     }
 
-    public void cycleRotationStep(int delta) {
+    public void cycleRotationStep(double delta) {
         int index = indexOf(ROTATION_STEPS, this.rotationStep);
         this.rotationStep = ROTATION_STEPS[Math.floorMod(index + direction(delta), ROTATION_STEPS.length)];
     }
@@ -164,12 +164,12 @@ public final class ClientToolPreferences {
         this.translateStep = cycle(TRANSLATE_STEPS, this.translateStep, delta);
     }
 
-    public int rotationDegrees() {
+    public double rotationDegrees() {
         return this.rotationDegrees;
     }
 
-    public void rotatePlacement(int direction) {
-        this.rotationDegrees = normalizeRotation(this.rotationDegrees + this.rotationStep * Integer.signum(direction));
+    public void rotatePlacement(double direction) {
+        this.rotationDegrees = normalizeRotation(this.rotationDegrees + this.rotationStep * direction);
     }
 
     public double weldAdjustStep() {
@@ -267,13 +267,13 @@ public final class ClientToolPreferences {
         this.offsetZ = 0;
     }
 
-    static int normalizeRotation(int degrees) {
-        int normalized = degrees % 360;
+    static double normalizeRotation(double degrees) {
+        double normalized = degrees % 360;
         return normalized < 0 ? normalized + 360 : normalized;
     }
 
-    static int clampRotationStep(int raw) {
-        for (int step : ROTATION_STEPS) {
+    static double clampRotationStep(double raw) {
+        for (double step : ROTATION_STEPS) {
             if (step == raw) {
                 return step;
             }
@@ -293,11 +293,11 @@ public final class ClientToolPreferences {
         return supportedStep(TRANSLATE_STEPS, raw, 0.25D);
     }
 
-    private static int direction(int delta) {
+    private static int direction(double delta) {
         return delta >= 0 ? 1 : -1;
     }
 
-    private static int indexOf(int[] values, int value) {
+    private static int indexOf(double[] values, double value) {
         for (int index = 0; index < values.length; index++) {
             if (values[index] == value) {
                 return index;
