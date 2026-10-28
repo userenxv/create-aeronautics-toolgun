@@ -282,6 +282,7 @@
   ,
   "message.create_aeronautics_toolgun.query_teleported": "Teleported physical structure.",
   "message.create_aeronautics_toolgun.query_player_teleported": "Teleported above the vehicle.",
+  "message.create_aeronautics_toolgun.query_teleport_permission_required": "Insufficient permissions.",
   "message.create_aeronautics_toolgun.query_renamed": "Renamed physical structure to: %s",
   "message.create_aeronautics_toolgun.query_action_failed": "Query action failed: %s",
   "message.create_aeronautics_toolgun.query_recovered": "Recovery complete: rebuilt the Sable storage index for %s sublevel(s).",

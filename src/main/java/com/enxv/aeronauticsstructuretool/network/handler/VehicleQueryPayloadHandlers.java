@@ -107,6 +107,16 @@ public final class VehicleQueryPayloadHandlers {
                     || !(player.level() instanceof ServerLevel level)) {
                 return;
             }
+            if ((QueryVehicleActionPayload.ACTION_TELEPORT.equals(payload.action())
+                    || QueryVehicleActionPayload.ACTION_TELEPORT_PLAYER_TO_VEHICLE.equals(payload.action()))
+                    && (ToolgunAccessPolicy.holdsSurvivalTool(player)
+                    || !ToolgunAccessPolicy.holdsCreativeTool(player))
+                    && !player.createCommandSourceStack().hasPermission(2)) {
+                player.sendSystemMessage(Component.translatable(
+                        "message.create_aeronautics_toolgun.query_teleport_permission_required"
+                ));
+                return;
+            }
             if (ToolgunAccessPolicy.rejectSurvivalFeature(
                     player,
                     SurvivalToolgunConfig.allowQuery(),

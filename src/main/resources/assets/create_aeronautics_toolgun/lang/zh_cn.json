@@ -283,6 +283,7 @@
   ,
   "message.create_aeronautics_toolgun.query_teleported": "\u5df2\u4f20\u9001\u7269\u7406\u7ed3\u6784\u3002",
   "message.create_aeronautics_toolgun.query_player_teleported": "已传送到载具上方。",
+  "message.create_aeronautics_toolgun.query_teleport_permission_required": "权限不足。",
   "message.create_aeronautics_toolgun.query_renamed": "\u5df2\u91cd\u547d\u540d\u7269\u7406\u7ed3\u6784\uff1a%s",
   "message.create_aeronautics_toolgun.query_action_failed": "\u67e5\u8be2\u64cd\u4f5c\u5931\u8d25\uff1a%s",
   "message.create_aeronautics_toolgun.query_recovered": "恢复完成：已重建 %s 个子结构的 Sable 存储索引。",

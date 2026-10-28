@@ -1,9 +1,11 @@
 package com.enxv.aeronauticsstructuretool.client.screen;
 
 import com.enxv.aeronauticsstructuretool.QueryVehicleActionPayload;
+import com.enxv.aeronauticsstructuretool.client.tool.ClientHeldToolState;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -32,6 +34,8 @@ public final class QueryVehicleTeleportScreen extends Screen {
     private EditBox xBox;
     private EditBox yBox;
     private EditBox zBox;
+    private Button playerTeleportButton;
+    private Button confirmButton;
 
     public QueryVehicleTeleportScreen(
             Screen parent,
@@ -72,9 +76,9 @@ public final class QueryVehicleTeleportScreen extends Screen {
             this.setInitialFocus(this.xBox);
         }
 
-        this.addRenderableWidget(new PanelButton(left + 18, top + 138, 284, 20, Component.translatable("screen.create_aeronautics_toolgun.query.teleport_player_to_vehicle"), button -> teleportPlayerToVehicle()));
-        Button confirmButton = this.addRenderableWidget(new PanelButton(left + 18, top + 166, 136, 20, Component.translatable("screen.create_aeronautics_toolgun.confirm"), button -> confirm()));
-        confirmButton.active = this.vehicleLoaded;
+        this.playerTeleportButton = this.addRenderableWidget(new PanelButton(left + 18, top + 138, 284, 20, Component.translatable("screen.create_aeronautics_toolgun.query.teleport_player_to_vehicle"), button -> teleportPlayerToVehicle()));
+        this.confirmButton = this.addRenderableWidget(new PanelButton(left + 18, top + 166, 136, 20, Component.translatable("screen.create_aeronautics_toolgun.confirm"), button -> confirm()));
+        refreshPermissions();
         this.addRenderableWidget(new PanelButton(left + 166, top + 166, 136, 20, Component.translatable("screen.create_aeronautics_toolgun.cancel"), button -> this.onClose()));
     }
 
@@ -90,6 +94,9 @@ public final class QueryVehicleTeleportScreen extends Screen {
     }
 
     private void confirm() {
+        if (!checkTeleportPermission()) {
+            return;
+        }
         if (!this.vehicleLoaded) {
             showClientMessage(Component.translatable("screen.create_aeronautics_toolgun.query.teleport_unloaded_hint"));
             return;
@@ -113,6 +120,9 @@ public final class QueryVehicleTeleportScreen extends Screen {
     }
 
     private void teleportPlayerToVehicle() {
+        if (!checkTeleportPermission()) {
+            return;
+        }
         PacketDistributor.sendToServer(new QueryVehicleActionPayload(
                 this.subLevelId,
                 QueryVehicleActionPayload.ACTION_TELEPORT_PLAYER_TO_VEHICLE,
@@ -128,6 +138,37 @@ public final class QueryVehicleTeleportScreen extends Screen {
         if (this.minecraft != null && this.minecraft.player != null) {
             this.minecraft.player.displayClientMessage(message, true);
         }
+    }
+
+    private boolean canTeleport() {
+        return this.minecraft != null && ClientHeldToolState.canTeleportVehicles(this.minecraft.player);
+    }
+
+    private boolean checkTeleportPermission() {
+        if (canTeleport()) {
+            return true;
+        }
+        showClientMessage(Component.translatable(
+                "message.create_aeronautics_toolgun.query_teleport_permission_required"
+        ));
+        return false;
+    }
+
+    private void refreshPermissions() {
+        boolean permitted = canTeleport();
+        this.playerTeleportButton.active = permitted;
+        this.confirmButton.active = permitted && this.vehicleLoaded;
+        Tooltip tooltip = permitted ? null : Tooltip.create(Component.translatable(
+                "message.create_aeronautics_toolgun.query_teleport_permission_required"
+        ));
+        this.playerTeleportButton.setTooltip(tooltip);
+        this.confirmButton.setTooltip(tooltip);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        refreshPermissions();
     }
 
     @Override

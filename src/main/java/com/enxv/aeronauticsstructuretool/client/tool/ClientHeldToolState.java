@@ -23,6 +23,13 @@ public final class ClientHeldToolState {
                 || ModItems.isSurvivalStructureTool(player.getOffhandItem()));
     }
 
+    public static boolean canTeleportVehicles(LocalPlayer player) {
+        return player != null && (player.hasPermissions(2)
+                || (!holdsRestrictedStructureTool(player)
+                && (ModItems.isCreativeStructureTool(player.getMainHandItem())
+                || ModItems.isCreativeStructureTool(player.getOffhandItem()))));
+    }
+
     private static boolean isStructureTool(ItemStack stack) {
         return ModItems.isAnyStructureTool(stack);
     }

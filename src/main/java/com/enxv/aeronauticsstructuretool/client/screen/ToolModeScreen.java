@@ -3,6 +3,7 @@ package com.enxv.aeronauticsstructuretool.client.screen;
 import com.enxv.aeronauticsstructuretool.BlueprintListEntry;
 import com.enxv.aeronauticsstructuretool.ClientToolState;
 import com.enxv.aeronauticsstructuretool.ModItems;
+import com.enxv.aeronauticsstructuretool.client.tool.ClientHeldToolState;
 import com.enxv.aeronauticsstructuretool.SyncQueryVehiclePreviewPayload;
 import com.enxv.aeronauticsstructuretool.SyncQueryVehiclesPayload;
 import com.enxv.aeronauticsstructuretool.ToolMode;
@@ -28,6 +29,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -715,7 +717,12 @@ public final class ToolModeScreen extends Screen {
         this.queryRecoverButton.visible = visible && brokenSelection;
         this.queryRenameButton.visible = visible;
         this.queryDeleteButton.visible = visible;
-        this.queryTeleportButton.active = usableSelection;
+        boolean canTeleport = this.minecraft != null
+                && ClientHeldToolState.canTeleportVehicles(this.minecraft.player);
+        this.queryTeleportButton.active = usableSelection && canTeleport;
+        this.queryTeleportButton.setTooltip(canTeleport ? null : Tooltip.create(Component.translatable(
+                "message.create_aeronautics_toolgun.query_teleport_permission_required"
+        )));
         this.queryRecoverButton.active = brokenSelection && !this.survivalRestricted;
         this.queryRenameButton.active = loadedSelection;
         this.queryDeleteButton.active = loadedSelection && !this.survivalRestricted;
@@ -727,7 +734,8 @@ public final class ToolModeScreen extends Screen {
 
     private void openSelectedVehicleTeleport() {
         NearbyVehicleQueryState.Entry selected = selectedVehicleEntry();
-        if (selected == null || selected.broken() || this.minecraft == null) {
+        if (selected == null || selected.broken() || this.minecraft == null
+                || !ClientHeldToolState.canTeleportVehicles(this.minecraft.player)) {
             return;
         }
         this.minecraft.setScreen(new QueryVehicleTeleportScreen(
