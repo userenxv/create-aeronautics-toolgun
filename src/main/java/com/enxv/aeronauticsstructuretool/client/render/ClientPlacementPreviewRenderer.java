@@ -4,6 +4,8 @@ import com.enxv.aeronauticsstructuretool.ClientToolState;
 import com.enxv.aeronauticsstructuretool.client.tool.MagneticGunClientController;
 import com.enxv.aeronauticsstructuretool.PreviewBlueprintData;
 import com.enxv.aeronauticsstructuretool.StructureToolItem;
+import com.enxv.aeronauticsstructuretool.PortableStructureContainerItem;
+import com.enxv.aeronauticsstructuretool.PlacementSnapMode;
 import com.enxv.aeronauticsstructuretool.blueprint.placement.PlacementTargetMath;
 import com.enxv.aeronauticsstructuretool.ToolMode;
 import com.enxv.aeronauticsstructuretool.blueprint.placement.BlueprintVerticalPlacement;
@@ -18,6 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
@@ -31,18 +34,34 @@ public final class ClientPlacementPreviewRenderer {
     public static void renderPlacementPreview(RenderLevelStageEvent event, boolean finalMainTarget) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.level == null) {
+            ClientContainerPlacementPreview.clear();
             ClientPlacementPreviewMesh.clearCache();
             return;
         }
-        if (!ClientToolState.isPreviewEnabled()
+        ItemStack container = minecraft.player.getMainHandItem();
+        if (!(container.getItem() instanceof PortableStructureContainerItem)
+                && minecraft.player.getMainHandItem().isEmpty()) {
+            container = minecraft.player.getOffhandItem();
+        }
+        boolean containerHeld = container.getItem() instanceof PortableStructureContainerItem;
+        if (!containerHeld) {
+            ClientContainerPlacementPreview.clear();
+        }
+        if (!containerHeld && (!ClientToolState.isPreviewEnabled()
                 || ClientToolState.getMode() != ToolMode.LOAD
-                || !ClientHeldToolState.holdsStructureTool(minecraft.player)) {
+                || !ClientHeldToolState.holdsStructureTool(minecraft.player))) {
             ClientPlacementPreviewMesh.clearCache();
             return;
         }
 
-        PreviewBlueprintData preview = ClientToolState.getOrLoadPreview();
-        PreviewPlacement placement = computePreviewPlacement(minecraft, preview);
+        PreviewBlueprintData preview = containerHeld
+                ? ClientContainerPlacementPreview.get(container, minecraft.level)
+                : ClientToolState.getOrLoadPreview();
+        if (preview == null || !preview.hasRenderableSamples()) {
+            ClientPlacementPreviewMesh.clearCache();
+            return;
+        }
+        PreviewPlacement placement = computePreviewPlacement(minecraft, preview, containerHeld);
         if (placement == null) {
             return;
         }
@@ -114,8 +133,8 @@ public final class ClientPlacementPreviewRenderer {
         bufferSource.endBatch(RenderType.debugQuads());
     }
 
-    private static PreviewPlacement computePreviewPlacement(Minecraft minecraft, PreviewBlueprintData preview) {
-        HitResult hit = minecraft.player.pick(StructureToolItem.MAX_USE_DISTANCE, 0.0F, false);
+    private static PreviewPlacement computePreviewPlacement(Minecraft minecraft, PreviewBlueprintData preview, boolean container) {
+        HitResult hit = minecraft.player.pick(container ? minecraft.player.blockInteractionRange() : StructureToolItem.MAX_USE_DISTANCE, 0.0F, false);
         if (!(hit instanceof BlockHitResult blockHit) || hit.getType() != HitResult.Type.BLOCK) {
             return null;
         }
@@ -134,17 +153,22 @@ public final class ClientPlacementPreviewRenderer {
                 worldHit.x,
                 worldHit.y,
                 worldHit.z,
-                ClientToolState.getSnapMode(),
-                ClientToolState.getOffsetX(),
-                ClientToolState.getOffsetY(),
-                ClientToolState.getOffsetZ()
+                container ? PlacementSnapMode.HIT : ClientToolState.getSnapMode(),
+                container ? 0 : ClientToolState.getOffsetX(),
+                container ? 0 : ClientToolState.getOffsetY(),
+                container ? 0 : ClientToolState.getOffsetZ()
         );
         Quaterniond rootOrientation = PlacementTargetMath.computeExtraRotation(
                 face,
-                ClientToolState.getRotationDegrees()
+                container ? 0 : ClientToolState.getRotationDegrees()
         );
-        double scaleFactor = Math.max(0.25D, ClientToolState.getScalePercent() / 100.0D);
-        if (preview != null) {
+        double scaleFactor = container ? 1.0D : Math.max(0.25D, ClientToolState.getScalePercent() / 100.0D);
+        if (container && face == Direction.UP) {
+            target = BlueprintVerticalPlacement.alignMinimumCenter(
+                    worldHit.y + 0.5D + BlueprintVerticalPlacement.SURFACE_GAP,
+                    ClientContainerPlacementPreview.bottomY()
+            ).apply(target, Double.NaN);
+        } else if (!container) {
             target = BlueprintVerticalPlacement
                     .keepAboveSurface(face, worldHit.y)
                     .apply(target, preview.minimumRelativeBlockCenterY(rootOrientation, scaleFactor));
