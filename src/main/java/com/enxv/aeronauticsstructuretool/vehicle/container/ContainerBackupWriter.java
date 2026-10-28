@@ -8,6 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -32,7 +35,10 @@ public final class ContainerBackupWriter implements AutoCloseable {
     }
 
     /** The caller transfers ownership of the freshly encoded archive and must not mutate it. */
-    public synchronized void submit(UUID vehicleId, byte[] archive) throws IOException {
+    public synchronized void submit(UUID vehicleId, byte[] archive, long maximumBytes) throws IOException {
+        if (maximumBytes <= 0) {
+            throw new IllegalArgumentException("backup size limit must be positive");
+        }
         if (archive.length == 0) {
             throw new IOException("cannot back up an empty vehicle archive");
         }
@@ -44,6 +50,7 @@ public final class ContainerBackupWriter implements AutoCloseable {
             executor.execute(() -> {
                 try {
                     write(vehicleId, archive);
+                    prune(maximumBytes);
                 } catch (IOException | RuntimeException failure) {
                     AeronauticsStructureToolMod.LOGGER.error("Failed to back up captured vehicle {} in {}", vehicleId, directory, failure);
                 } finally {
@@ -83,6 +90,37 @@ public final class ContainerBackupWriter implements AutoCloseable {
             }
             throw failure;
         }
+    }
+
+    /** Only completed backups count; temporary files and unrelated files are never removed. */
+    private void prune(long maximumBytes) throws IOException {
+        List<Backup> files = new ArrayList<>();
+        long total = 0;
+        try (var entries = Files.newDirectoryStream(directory, "*.excraft")) {
+            for (Path file : entries) {
+                var attributes = Files.readAttributes(file, java.nio.file.attribute.BasicFileAttributes.class,
+                        java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                if (!attributes.isRegularFile()) {
+                    continue;
+                }
+                files.add(new Backup(file, attributes.size(), attributes.lastModifiedTime().toMillis()));
+                total += attributes.size();
+            }
+        }
+        if (total <= maximumBytes) {
+            return;
+        }
+        files.sort(Comparator.comparingLong(Backup::modified).thenComparing(backup -> backup.path().toString()));
+        for (Backup backup : files) {
+            if (total <= maximumBytes) {
+                break;
+            }
+            Files.delete(backup.path());
+            total -= backup.bytes();
+        }
+    }
+
+    private record Backup(Path path, long bytes, long modified) {
     }
 
     @Override

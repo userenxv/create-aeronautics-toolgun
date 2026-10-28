@@ -45,7 +45,7 @@ public final class ContainerCaptureService {
         if (backups == null) {
             backups = new ContainerBackupWriter(FMLPaths.GAMEDIR.get().resolve("container-backups"));
         }
-        backups.submit(vehicleId, archive);
+        backups.submit(vehicleId, archive, ContainerCaptureConfig.backupMaximumBytes());
     }
 
     public void begin(ServerPlayer player, UseOnContext context, PortableStructureContainerItem item) {

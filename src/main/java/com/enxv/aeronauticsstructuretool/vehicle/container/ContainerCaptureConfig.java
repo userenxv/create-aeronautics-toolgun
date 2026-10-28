@@ -7,6 +7,7 @@ public final class ContainerCaptureConfig {
     private static final ModConfigSpec.BooleanValue TIMED_CAPTURE;
     private static final ModConfigSpec.DoubleValue BLOCKS_PER_SECOND;
     private static final ModConfigSpec.BooleanValue BACKUP_CAPTURED_VEHICLES;
+    private static final ModConfigSpec.IntValue BACKUP_MAX_SIZE_MB;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -17,6 +18,8 @@ public final class ContainerCaptureConfig {
                 .defineInRange("blocksPerSecond", 50.0D, 0.1D, 1000000.0D);
         BACKUP_CAPTURED_VEHICLES = builder.comment("Back up packed vehicles asynchronously to container-backups/<vehicle UUID>.excraft in the game/server directory. The latest capture replaces the same UUID. A full backup queue rejects capture before any originals are removed.")
                 .define("backupCapturedVehicles", true);
+        BACKUP_MAX_SIZE_MB = builder.comment("Maximum total size of completed .excraft files in container-backups, in MiB. Keep old backups until the limit is exceeded, then delete oldest files first. Cleanup runs on the backup thread after writing. A single backup exceeding the limit is also removed.")
+                .defineInRange("backupMaxSizeMB", 256, 1, 1048576);
         builder.pop();
         SPEC = builder.build();
     }
@@ -26,6 +29,10 @@ public final class ContainerCaptureConfig {
 
     public static boolean backupsEnabled() {
         return BACKUP_CAPTURED_VEHICLES.getAsBoolean();
+    }
+
+    public static long backupMaximumBytes() {
+        return BACKUP_MAX_SIZE_MB.get().longValue() * 1024L * 1024L;
     }
 
     public static int durationTicks(long blocks) {

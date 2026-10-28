@@ -146,8 +146,8 @@ public final class ContainerCaptureRegressionCheck {
         UUID id = UUID.randomUUID();
         ContainerBackupWriter writer = new ContainerBackupWriter(directory);
         try {
-            writer.submit(id, new byte[]{1, 2, 3});
-            writer.submit(id, new byte[]{4, 5});
+            writer.submit(id, new byte[]{1, 2, 3}, 256);
+            writer.submit(id, new byte[]{4, 5}, 256);
             writer.close();
             check(java.util.Arrays.equals(java.nio.file.Files.readAllBytes(directory.resolve(id + ".excraft")),
                     new byte[]{4, 5}), "same ID must replace the old backup in submission order");
@@ -155,12 +155,36 @@ public final class ContainerCaptureRegressionCheck {
                 check(files.count() == 1, "completed backups must not leave duplicate files or temporary files");
             }
             try {
-                writer.submit(id, new byte[]{6});
+                writer.submit(id, new byte[]{6}, 256);
                 throw new AssertionError("closed backup writer must reject new work");
             } catch (ContainerBackupWriter.QueueFullException expected) {
                 check(java.nio.file.Files.size(directory.resolve(id + ".excraft")) == 2,
                         "rejected work must leave the existing backup intact");
             }
+            UUID oldest = UUID.randomUUID();
+            UUID middle = UUID.randomUUID();
+            UUID newest = UUID.randomUUID();
+            java.nio.file.Files.delete(directory.resolve(id + ".excraft"));
+            java.nio.file.Path oldFile = directory.resolve(oldest + ".excraft");
+            java.nio.file.Path middleFile = directory.resolve(middle + ".excraft");
+            java.nio.file.Files.write(oldFile, new byte[4]);
+            java.nio.file.Files.write(middleFile, new byte[4]);
+            java.nio.file.Files.setLastModifiedTime(oldFile, java.nio.file.attribute.FileTime.fromMillis(1000));
+            java.nio.file.Files.setLastModifiedTime(middleFile, java.nio.file.attribute.FileTime.fromMillis(2000));
+            try (ContainerBackupWriter retention = new ContainerBackupWriter(directory)) {
+                retention.submit(newest, new byte[2], 10);
+            }
+            check(java.nio.file.Files.exists(oldFile) && java.nio.file.Files.exists(middleFile),
+                    "backups at the limit must be retained");
+            UUID extra = UUID.randomUUID();
+            try (ContainerBackupWriter retention = new ContainerBackupWriter(directory)) {
+                retention.submit(extra, new byte[5], 10);
+            }
+            check(!java.nio.file.Files.exists(oldFile) && !java.nio.file.Files.exists(middleFile),
+                    "overflow must delete oldest files until within limit");
+            check(java.nio.file.Files.exists(directory.resolve(newest + ".excraft"))
+                    && java.nio.file.Files.exists(directory.resolve(extra + ".excraft")),
+                    "newest backups must survive oldest-first cleanup");
         } finally {
             writer.close();
             try (var files = java.nio.file.Files.list(directory)) {
