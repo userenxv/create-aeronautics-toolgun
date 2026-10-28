@@ -198,7 +198,7 @@ public final class PortableStructureContainerItem extends Item {
         var expectedIds = expected.stream().map(ServerSubLevel::getUniqueId).toList();
         if (!new HashSet<>(capturedIds).equals(new HashSet<>(expectedIds))
                 || ContainerCaptureBlocks.countArchive(level, saved.fileContents()) != expectedBlocks
-                || progressTicks < ContainerCaptureConfig.durationTicks(expectedBlocks)) {
+                || progressTicks < ContainerCaptureConfig.durationTicks(expectedBlocks, player)) {
             throw new IllegalStateException("structure changed during capture; no originals were removed");
         }
         ItemStack prepared = stack.copy();

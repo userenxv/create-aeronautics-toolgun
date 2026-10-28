@@ -80,7 +80,7 @@ public final class ContainerCaptureService {
                 return;
             }
             long blocks = ContainerCaptureBlocks.countLive(level, connected);
-            int ticks = ContainerCaptureConfig.durationTicks(blocks);
+            int ticks = ContainerCaptureConfig.durationTicks(blocks, player);
             Session session = new Session(player, level, context.getHand(), stack, stack.copy(), item, root,
                     connected, targets, blocks, ticks);
             sessions.put(player.getUUID(), session);

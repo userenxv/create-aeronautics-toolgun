@@ -39,6 +39,10 @@ public final class ContainerCaptureConfig {
         return durationTicks(blocks, TIMED_CAPTURE.getAsBoolean(), BLOCKS_PER_SECOND.get());
     }
 
+    public static int durationTicks(long blocks, net.minecraft.server.level.ServerPlayer player) {
+        return player.isCreative() ? 0 : durationTicks(blocks);
+    }
+
     public static int durationTicks(long blocks, boolean enabled, double blocksPerSecond) {
         if (!Double.isFinite(blocksPerSecond) || blocksPerSecond <= 0 || blocks < 0) {
             throw new IllegalArgumentException("invalid container capture speed or block count");
