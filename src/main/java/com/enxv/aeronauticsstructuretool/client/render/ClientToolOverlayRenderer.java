@@ -2,7 +2,6 @@ package com.enxv.aeronauticsstructuretool.client.render;
 
 import com.enxv.aeronauticsstructuretool.BlueprintListEntry;
 import com.enxv.aeronauticsstructuretool.client.tool.ClientStructureToolHandler;
-import com.enxv.aeronauticsstructuretool.client.tool.ClientSaveSelectionPreview;
 import com.enxv.aeronauticsstructuretool.ClientToolState;
 import com.enxv.aeronauticsstructuretool.ConnectionMode;
 import com.enxv.aeronauticsstructuretool.SimpleWeldAdjustMode;
@@ -43,10 +42,12 @@ public final class ClientToolOverlayRenderer {
 
     public static void registerShaders(RegisterShadersEvent event) {
         SimpleWeldGhostRenderer.registerShaders(event);
+        SaveSelectionPreviewRenderer.registerShader(event);
     }
 
     public static void clearCachedModels() {
         SimpleWeldGhostRenderer.clear();
+        SaveSelectionPreviewRenderer.clear();
     }
 
     public static void renderLevel(RenderLevelStageEvent event) {
@@ -56,7 +57,7 @@ public final class ClientToolOverlayRenderer {
                 ClientPlacementPreviewRenderer.renderPlacementPreview(event, false);
             }
             if (!deferEngineeringGhosts) {
-                renderSaveSelectionPreview(event);
+                SaveSelectionPreviewRenderer.render(event);
             }
             ClientPlacementPreviewRenderer.renderMagneticMarkers(event);
             renderHeldBearingAxisPreview(event);
@@ -71,7 +72,7 @@ public final class ClientToolOverlayRenderer {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL
                 && SimpleWeldGhostRenderer.shouldRenderAfterLevel()) {
             ClientPlacementPreviewRenderer.renderPlacementPreview(event, true);
-            renderSaveSelectionPreview(event);
+            SaveSelectionPreviewRenderer.render(event);
             renderDeferredSimpleWeldGhost(event);
         }
     }
@@ -206,44 +207,6 @@ public final class ClientToolOverlayRenderer {
         poseStack.popPose();
         bufferSource.endBatch(PREVIEW_RENDER_TYPE);
         bufferSource.endBatch(RenderType.debugQuads());
-    }
-
-    private static void renderSaveSelectionPreview(RenderLevelStageEvent event) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null
-                || minecraft.level == null
-                || !ClientHeldToolState.holdsStructureTool(minecraft.player)
-                || ClientToolState.getMode() != ToolMode.SAVE) {
-            return;
-        }
-        ClientSaveSelectionPreview.Selection selection = ClientSaveSelectionPreview.resolve(minecraft);
-        if (selection == null) {
-            return;
-        }
-
-        PoseStack poseStack = event.getPoseStack();
-        Vec3 cameraPos = event.getCamera().getPosition();
-        poseStack.pushPose();
-        poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-        MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-        VertexConsumer rangeConsumer = bufferSource.getBuffer(RenderType.debugQuads());
-        Vector3d[] corners = createWorldBoundsCorners(selection.rangeBounds());
-        renderBoundsEdges(poseStack, rangeConsumer, corners, 1.0F, 0.78F, 0.16F, 0.96F);
-        poseStack.popPose();
-        bufferSource.endBatch(RenderType.debugQuads());
-    }
-
-    private static Vector3d[] createWorldBoundsCorners(dev.ryanhcode.sable.companion.math.BoundingBox3d bounds) {
-        return new Vector3d[]{
-                new Vector3d(bounds.minX(), bounds.minY(), bounds.minZ()),
-                new Vector3d(bounds.maxX(), bounds.minY(), bounds.minZ()),
-                new Vector3d(bounds.maxX(), bounds.minY(), bounds.maxZ()),
-                new Vector3d(bounds.minX(), bounds.minY(), bounds.maxZ()),
-                new Vector3d(bounds.minX(), bounds.maxY(), bounds.minZ()),
-                new Vector3d(bounds.maxX(), bounds.maxY(), bounds.minZ()),
-                new Vector3d(bounds.maxX(), bounds.maxY(), bounds.maxZ()),
-                new Vector3d(bounds.minX(), bounds.maxY(), bounds.maxZ())
-        };
     }
 
     private static void renderRotateMarkers(RenderLevelStageEvent event) {

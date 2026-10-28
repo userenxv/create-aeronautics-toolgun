@@ -10,6 +10,7 @@ import com.enxv.aeronauticsstructuretool.ToolPanel;
 import com.enxv.aeronauticsstructuretool.client.tool.ClientHeldToolState;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
@@ -126,8 +127,10 @@ public final class ClientToolInputController {
             return;
         }
         if (ClientToolState.getMode() == ToolMode.SAVE) {
-            ClientToolState.adjustConnectedSublevelProximity(delta);
-            event.setCanceled(true);
+            if (Screen.hasControlDown()) {
+                ClientToolState.adjustConnectedSublevelProximity(delta);
+                event.setCanceled(true);
+            }
             return;
         }
         if (ClientToolState.getMode() != ToolMode.LOAD) {

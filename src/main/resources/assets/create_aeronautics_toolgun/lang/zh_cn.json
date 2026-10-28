@@ -122,7 +122,7 @@
     "screen.create_aeronautics_toolgun.tool.active":  "已启用",
     "screen.create_aeronautics_toolgun.active_mode":  "当前场景模式",
     "screen.create_aeronautics_toolgun.hud.mode":  "模式：%s",
-    "screen.create_aeronautics_toolgun.hud.save":  "右键保存；滚轮调整范围宽度（%s格）。",
+    "screen.create_aeronautics_toolgun.hud.save":  "右键保存；Ctrl+滚轮调整范围宽度（%s格）。",
     "screen.create_aeronautics_toolgun.hud.load":  "蓝图：%s | 旋转：%s | 偏移：%s,%s,%s | 吸附：%s",
     "screen.create_aeronautics_toolgun.hud.preview_loading": "预览加载中...",
     "screen.create_aeronautics_toolgun.hud.delete":  "右键物理结构即可删除。",

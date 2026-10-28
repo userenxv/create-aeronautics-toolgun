@@ -1,0 +1,9 @@
+{
+  "vertex": "create_aeronautics_toolgun:save_selection",
+  "fragment": "create_aeronautics_toolgun:save_selection",
+  "samplers": [],
+  "uniforms": [
+    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] },
+    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] }
+  ]
+}

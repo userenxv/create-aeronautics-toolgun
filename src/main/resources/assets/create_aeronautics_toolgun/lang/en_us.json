@@ -155,7 +155,7 @@
   "screen.create_aeronautics_toolgun.tool.active": "Active",
   "screen.create_aeronautics_toolgun.active_mode": "Active Field Mode",
   "screen.create_aeronautics_toolgun.hud.mode": "Mode: %s",
-  "screen.create_aeronautics_toolgun.hud.save": "Right-click to save; scroll changes range width (%s blocks).",
+  "screen.create_aeronautics_toolgun.hud.save": "Right-click to save; Ctrl+scroll changes range width (%s blocks).",
   "screen.create_aeronautics_toolgun.hud.load": "Blueprint: %s | Rot: %s | Offset: %s,%s,%s | Snap: %s",
   "screen.create_aeronautics_toolgun.hud.preview_loading": "Preview loading...",
   "screen.create_aeronautics_toolgun.hud.delete": "Right-click a physical structure to delete it.",
