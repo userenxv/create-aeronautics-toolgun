@@ -5,6 +5,7 @@ import com.enxv.aeronauticsstructuretool.blueprint.geometry.LoadedSubLevelCoordi
 import com.enxv.aeronauticsstructuretool.blueprint.model.LoadedSubLevel;
 import com.enxv.aeronauticsstructuretool.compat.cbc.CbcRuntimeContraptionCompat;
 import com.enxv.aeronauticsstructuretool.compat.create.ControlledRuntimeContraptionCompat;
+import com.enxv.aeronauticsstructuretool.compat.synaxis.SynaxisFlapContraptionCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -34,11 +35,13 @@ public final class RuntimeContraptionRestoreService {
                         ControlledRuntimeContraptionCompat.restore(blueprint, level, controllerPos, blockEntity);
                 case RuntimeContraptionCodec.CBC_PITCH_KIND ->
                         CbcRuntimeContraptionCompat.restore(blueprint, level, controllerPos, blockEntity);
+                case RuntimeContraptionCodec.SYNAXIS_FLAP_KIND ->
+                        SynaxisFlapContraptionCompat.restore(blueprint, level, controllerPos, blockEntity);
                 default -> RuntimeContraptionRestoreResult.permanentFailure(
                         "unsupported runtime contraption kind '" + blueprint.kind() + "'"
                 );
             };
-        } catch (ReflectiveOperationException | RuntimeException exception) {
+        } catch (ReflectiveOperationException | java.io.IOException | RuntimeException exception) {
             return RuntimeContraptionRestoreResult.permanentFailure(
                     "failed to restore runtime contraption kind=" + blueprint.kind()
                             + " controller=" + controllerPos,

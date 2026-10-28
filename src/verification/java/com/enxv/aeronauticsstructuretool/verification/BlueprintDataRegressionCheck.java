@@ -53,6 +53,24 @@ public final class BlueprintDataRegressionCheck {
         verifyMissingRegistryContentFallback();
         verifyMaterialAccounting();
         verifyVModImport();
+        verifySynaxisFlapRuntimeCodec();
+    }
+
+    private static void verifySynaxisFlapRuntimeCodec() throws Exception {
+        CompoundTag contraption = new CompoundTag();
+        contraption.putString("Type", "bearing");
+        contraption.putString("inventory-marker", "diamond:37,oak_log:23");
+        var flap = new com.enxv.aeronauticsstructuretool.RuntimeContraptionBlueprint(
+                com.enxv.aeronauticsstructuretool.blueprint.runtime.RuntimeContraptionCodec.SYNAXIS_FLAP_KIND,
+                new BlockPos(3, -57, 4), contraption,
+                "com.verr1.synaxis.content.blocks.flap.FlapContraptionEntity", 30F, 0F, 15F, "",
+                Map.of("minecraft:diamond", 37L, "minecraft:oak_log", 23L));
+        CompoundTag root = new CompoundTag();
+        root.put("runtime", com.enxv.aeronauticsstructuretool.RuntimeContraptionBlueprint.writeList(List.of(flap)));
+        var decoded = com.enxv.aeronauticsstructuretool.blueprint.runtime.RuntimeContraptionCodec.readList(
+                BlueprintArchiveCodec.decode(BlueprintArchiveCodec.encode(root)), "runtime");
+        require(decoded.size() == 1 && decoded.getFirst().equals(flap),
+                "Synaxis flap archive must preserve controller, inventory, angle and tilt");
     }
 
     private static void verifyStrictModeParsing() {

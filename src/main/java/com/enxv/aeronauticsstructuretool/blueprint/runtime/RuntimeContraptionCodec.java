@@ -21,6 +21,7 @@ import static com.enxv.aeronauticsstructuretool.blueprint.codec.NbtTagValidator.
 public final class RuntimeContraptionCodec {
     public static final String CREATE_CONTROLLED_KIND = "create_controlled";
     public static final String CBC_PITCH_KIND = "cbc_pitch";
+    public static final String SYNAXIS_FLAP_KIND = "synaxis_flap";
 
     private static final String KIND_TAG = "kind";
     private static final String CONTROLLER_TAG = "controller";
@@ -108,7 +109,7 @@ public final class RuntimeContraptionCodec {
             throw new IOException("runtime contraption kind is missing");
         }
         String kind = tag.getString(KIND_TAG);
-        if (!(CREATE_CONTROLLED_KIND.equals(kind) || CBC_PITCH_KIND.equals(kind))) {
+        if (!(CREATE_CONTROLLED_KIND.equals(kind) || CBC_PITCH_KIND.equals(kind) || SYNAXIS_FLAP_KIND.equals(kind))) {
             throw new IOException("unsupported runtime contraption kind '" + kind + "'");
         }
         BlockPos controller = NbtUtils.readBlockPos(tag, CONTROLLER_TAG)

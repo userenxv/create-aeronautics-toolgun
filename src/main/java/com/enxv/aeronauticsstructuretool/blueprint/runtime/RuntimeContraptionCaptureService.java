@@ -5,6 +5,7 @@ import com.enxv.aeronauticsstructuretool.RuntimeContraptionBlueprint;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.PlotBlockTransform;
 import com.enxv.aeronauticsstructuretool.compat.cbc.CbcRuntimeContraptionCompat;
 import com.enxv.aeronauticsstructuretool.compat.create.ControlledRuntimeContraptionCompat;
+import com.enxv.aeronauticsstructuretool.compat.synaxis.SynaxisFlapContraptionCompat;
 import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -26,6 +27,15 @@ public final class RuntimeContraptionCaptureService {
     ) {
         Map<String, RuntimeContraptionBlueprint> blueprints = new LinkedHashMap<>();
         for (BlockEntity blockEntity : transform.findBlockEntities(level)) {
+            if (SynaxisFlapContraptionCompat.isController(blockEntity)) {
+                var flap = SynaxisFlapContraptionCompat.attached(blockEntity);
+                if (flap != null) {
+                    var blueprint = SynaxisFlapContraptionCompat.capture(level, flap,
+                            transform.toSavedLocalBlockPos(blockEntity.getBlockPos()));
+                    blueprints.putIfAbsent(key(blueprint), blueprint);
+                }
+                continue;
+            }
             if (!(blockEntity instanceof MechanicalBearingBlockEntity bearing)) {
                 continue;
             }

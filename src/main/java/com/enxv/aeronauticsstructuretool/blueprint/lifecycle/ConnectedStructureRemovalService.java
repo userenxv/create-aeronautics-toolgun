@@ -3,6 +3,7 @@ package com.enxv.aeronauticsstructuretool.blueprint.lifecycle;
 import com.enxv.aeronauticsstructuretool.RuntimeContraptionBlueprint;
 import com.enxv.aeronauticsstructuretool.blueprint.capture.ConnectedSubLevelCollector;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.PlotBlockTransform;
+import com.enxv.aeronauticsstructuretool.compat.synaxis.SynaxisFlapContraptionCompat;
 
 import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity;
 import dev.ryanhcode.sable.Sable;
@@ -67,6 +68,11 @@ public final class ConnectedStructureRemovalService {
         for (ServerSubLevel subLevel : subLevels) {
             PlotBlockTransform transform = PlotBlockTransform.capture(subLevel);
             for (BlockEntity blockEntity : transform.findBlockEntities(level)) {
+                if (SynaxisFlapContraptionCompat.isController(blockEntity)) {
+                    var flap = SynaxisFlapContraptionCompat.attached(blockEntity);
+                    if (flap != null) flap.discard();
+                    continue;
+                }
                 if (!(blockEntity instanceof MechanicalBearingBlockEntity bearing)) {
                     continue;
                 }

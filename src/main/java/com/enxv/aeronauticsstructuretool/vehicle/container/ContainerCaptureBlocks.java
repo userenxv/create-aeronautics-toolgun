@@ -6,6 +6,7 @@ import com.enxv.aeronauticsstructuretool.blueprint.codec.BlueprintArchiveCodec;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.PlotBlockTransform;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity;
+import com.enxv.aeronauticsstructuretool.compat.synaxis.SynaxisFlapContraptionCompat;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -28,6 +29,9 @@ public final class ContainerCaptureBlocks {
                 for (var blockEntity : holder.getChunk().getBlockEntities().values()) {
                     if (blockEntity instanceof MechanicalBearingBlockEntity bearing) {
                         count[0] += countContraption(bearing.getMovedContraption(), contraptions);
+                    }
+                    if (SynaxisFlapContraptionCompat.isController(blockEntity)) {
+                        count[0] += countContraption(SynaxisFlapContraptionCompat.attached(blockEntity), contraptions);
                     }
                 }
                 for (var section : holder.getChunk().getSections()) {

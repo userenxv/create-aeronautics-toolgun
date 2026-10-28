@@ -10,6 +10,7 @@
         "com/simibubi/create/content/contraptions/OrientedContraptionEntity"
       ],
       "methods": [
+        {"owner": "com/simibubi/create/content/contraptions/ControlledContraptionEntity", "name": "setContraption", "descriptor": "(Lcom/simibubi/create/content/contraptions/Contraption;)V"},
         {
           "owner": "com/simibubi/create/content/contraptions/AbstractContraptionEntity",
           "name": "getContraption",
@@ -369,6 +370,8 @@
       "path": "libs/optional/synaxis-1.4.3.jar",
       "required": false,
       "classes": [
+        "com/verr1/synaxis/content/blocks/flap/CompactFlapBlockEntity",
+        "com/verr1/synaxis/content/blocks/flap/FlapContraptionEntity",
         "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager",
         "com/verr1/synaxis/foundation/controllerwire/ControllerWireNetworkManager$ConnectionView",
         "com/verr1/synaxis/foundation/controllerwire/ControllerSignalSource",
@@ -424,7 +427,14 @@
         {"owner": "com/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointId", "name": "value", "descriptor": "()Ljava/util/UUID;"},
         {"owner": "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord", "name": "from", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef;"},
         {"owner": "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord", "name": "to", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/endpoint/EndpointPortRef;"},
-        {"owner": "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord", "name": "state", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/graph/LinkState;"}
+        {"owner": "com/verr1/synaxis/foundation/cimulink/game/graph/LinkRecord", "name": "state", "descriptor": "()Lcom/verr1/synaxis/foundation/cimulink/game/graph/LinkState;"},
+        {"owner": "com/verr1/synaxis/content/blocks/flap/CompactFlapBlockEntity", "name": "isAssembled", "descriptor": "()Z"},
+        {"owner": "com/verr1/synaxis/content/blocks/flap/CompactFlapBlockEntity", "name": "getDirection", "descriptor": "()Lnet/minecraft/core/Direction;"}
+      ],
+      "fields": [
+        {"owner": "com/verr1/synaxis/content/blocks/flap/CompactFlapBlockEntity", "name": "physicalWing", "descriptor": "Lcom/verr1/synaxis/content/blocks/flap/FlapContraptionEntity;"},
+        {"owner": "com/verr1/synaxis/content/blocks/flap/FlapContraptionEntity", "name": "tilt", "descriptor": "D"},
+        {"owner": "com/verr1/synaxis/content/blocks/flap/FlapContraptionEntity", "name": "prevTilt", "descriptor": "D"}
       ]
     },
     {

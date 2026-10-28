@@ -86,7 +86,8 @@ public final class RuntimeContraptionPreviewReader {
         if (RuntimeContraptionCodec.CBC_PITCH_KIND.equals(blueprint.kind())) {
             return resolveCbcPitchAnchor(blueprint, controllerState);
         }
-        if (!RuntimeContraptionCodec.CREATE_CONTROLLED_KIND.equals(blueprint.kind())) {
+        if (!RuntimeContraptionCodec.CREATE_CONTROLLED_KIND.equals(blueprint.kind())
+                && !RuntimeContraptionCodec.SYNAXIS_FLAP_KIND.equals(blueprint.kind())) {
             throw new IOException("unsupported runtime contraption kind: " + blueprint.kind());
         }
         BlockPos controllerPos = blueprint.controllerLocalPos();
