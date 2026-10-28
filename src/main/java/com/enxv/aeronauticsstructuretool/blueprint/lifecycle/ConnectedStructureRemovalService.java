@@ -41,8 +41,26 @@ public final class ConnectedStructureRemovalService {
             throw new IOException("Sable sublevel container is unavailable");
         }
 
-        purgeRuntimeContraptions(level, connected);
-        SubLevelRemovalCoordinator.remove(level, container, connected);
+        removeExact(level, connected);
+    }
+
+    public static void removeExact(ServerLevel level, List<ServerSubLevel> targets) throws IOException {
+        ServerSubLevelContainer container = SubLevelContainer.getContainer(level);
+        if (container == null) {
+            throw new IOException("Sable sublevel container is unavailable");
+        }
+        for (ServerSubLevel target : targets) {
+            if (container.getSubLevel(target.getUniqueId()) != target) {
+                throw new IOException("structure changed before removal: " + target.getUniqueId());
+            }
+        }
+        purgeRuntimeContraptions(level, targets);
+        SubLevelRemovalCoordinator.remove(level, container, targets);
+        for (ServerSubLevel target : targets) {
+            if (container.getSubLevel(target.getUniqueId()) == target) {
+                throw new IOException("structure removal did not complete: " + target.getUniqueId());
+            }
+        }
     }
 
     private static void purgeRuntimeContraptions(ServerLevel level, List<ServerSubLevel> subLevels) {

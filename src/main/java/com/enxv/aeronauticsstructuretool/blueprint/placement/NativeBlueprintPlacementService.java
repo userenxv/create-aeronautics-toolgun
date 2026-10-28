@@ -51,6 +51,7 @@ import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -199,6 +200,7 @@ public final class NativeBlueprintPlacementService {
         }
         PhysicsPipeline pipeline = container.physicsSystem().getPipeline();
         Map<UUID, LoadedSubLevel> loadedSublevels = new LinkedHashMap<>();
+        List<ServerSubLevel> allocatedSublevels = new ArrayList<>();
         BlueprintPlacementDiagnostics diagnostics = new BlueprintPlacementDiagnostics(safeName);
 
         try {
@@ -209,7 +211,8 @@ public final class NativeBlueprintPlacementService {
                     rootPlacementPose,
                     rootOrientation,
                     scaleFactor,
-                    loadedSublevels
+                    loadedSublevels,
+                    allocatedSublevels
             );
             BoundingBox3i aggregateBounds = aggregateBounds(loadedSublevels);
             SubLevelSchematicSerializationContext placeContext = SableSchematicContextFactory.createPlaceContext(
@@ -333,14 +336,14 @@ public final class NativeBlueprintPlacementService {
             );
         } catch (Exception exception) {
             ServerServices.RUNTIME_CONTRAPTION_RESTORE.cancelForSublevels(
-                    loadedSublevels.values().stream()
-                            .map(loaded -> loaded.subLevel().getUniqueId())
+                    allocatedSublevels.stream()
+                            .map(ServerSubLevel::getUniqueId)
                             .toList()
             );
             IOException placementFailure = exception instanceof IOException ioException
                     ? ioException
                     : new IOException("blueprint placement failed", exception);
-            BlueprintPlacementRollback.rollback(container, loadedSublevels.values(), safeName, placementFailure);
+            BlueprintPlacementRollback.rollback(container, allocatedSublevels, safeName, placementFailure);
             throw placementFailure;
         }
     }
@@ -352,7 +355,8 @@ public final class NativeBlueprintPlacementService {
             Pose3d rootPlacementPose,
             Quaterniond rootOrientation,
             double scaleFactor,
-            Map<UUID, LoadedSubLevel> loadedSublevels
+            Map<UUID, LoadedSubLevel> loadedSublevels,
+            List<ServerSubLevel> allocatedSublevels
     ) throws IOException {
         for (SavedSubLevelBlueprint saved : savedSublevels) {
             PlotVerticalLayout verticalLayout = PlotVerticalLayout.plan(
@@ -378,6 +382,8 @@ public final class NativeBlueprintPlacementService {
             } catch (Exception exception) {
                 throw new IOException("failed to allocate sublevel for print", exception);
             }
+            // Track ownership before any initialization that can fail.
+            allocatedSublevels.add(subLevel);
             if (!saved.name().isBlank()) {
                 subLevel.setName(saved.name());
             }

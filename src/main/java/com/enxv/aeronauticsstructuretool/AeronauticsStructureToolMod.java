@@ -31,6 +31,9 @@ public final class AeronauticsStructureToolMod {
 
     public AeronauticsStructureToolMod(IEventBus modBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.SERVER, SurvivalToolgunConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.SERVER,
+                com.enxv.aeronauticsstructuretool.vehicle.container.ContainerCaptureConfig.SPEC,
+                "create_aeronautics_toolgun-container.toml");
         ModBlocks.register(modBus);
         ModBlockEntities.register(modBus);
         ModItems.register(modBus);

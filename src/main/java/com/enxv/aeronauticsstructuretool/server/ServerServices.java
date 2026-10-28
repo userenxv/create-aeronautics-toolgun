@@ -10,6 +10,7 @@ import com.enxv.aeronauticsstructuretool.compat.synaxis.SynaxisControllerWireRes
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.lifecycle.ConstraintLifecycleManager;
 import com.enxv.aeronauticsstructuretool.toolgun.magnetic.MagneticGunServerService;
 import com.enxv.aeronauticsstructuretool.network.transfer.BlueprintLoadUploadManager;
+import com.enxv.aeronauticsstructuretool.vehicle.container.ContainerCaptureService;
 import net.neoforged.bus.api.IEventBus;
 
 public final class ServerServices {
@@ -31,6 +32,7 @@ public final class ServerServices {
     public static final HardBlockMissileCleanupManager HARDBLOCK_MISSILE_CLEANUP = new HardBlockMissileCleanupManager();
     public static final ConstraintLifecycleManager CONSTRAINT_LIFECYCLE = new ConstraintLifecycleManager();
     public static final BlueprintLoadUploadManager BLUEPRINT_LOAD_UPLOAD = new BlueprintLoadUploadManager();
+    public static final ContainerCaptureService CONTAINER_CAPTURE = new ContainerCaptureService();
 
     private ServerServices() {
     }
@@ -46,5 +48,6 @@ public final class ServerServices {
         gameBus.register(HARDBLOCK_MISSILE_CLEANUP);
         gameBus.register(CONSTRAINT_LIFECYCLE);
         gameBus.register(BLUEPRINT_LOAD_UPLOAD);
+        gameBus.register(CONTAINER_CAPTURE);
     }
 }

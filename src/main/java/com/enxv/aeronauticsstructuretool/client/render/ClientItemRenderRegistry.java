@@ -483,6 +483,14 @@ public final class ClientItemRenderRegistry {
         private static final float FILLED_FLOAT_CYCLES_PER_SECOND = 1.15F;
         private static final float BASE_CORE_SPIN_DEGREES_PER_SECOND = 360.0F;
         private static final float FILLED_CORE_SPIN_DEGREES_PER_SECOND = 720.0F;
+        private static final java.util.Map<ItemStack, ContainerMotion> MOTION = new java.util.WeakHashMap<>();
+        private static final java.util.EnumMap<ItemDisplayContext, ContainerMotion> HELD_MOTION =
+                new java.util.EnumMap<>(ItemDisplayContext.class);
+
+        private static final class ContainerMotion {
+            final ContainerCaptureAnimation animation = new ContainerCaptureAnimation();
+            long lastNanos = System.nanoTime();
+        }
 
         private PortableStructureContainerRenderer() {
             super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
@@ -492,14 +500,14 @@ public final class ClientItemRenderRegistry {
         public void renderByItem(ItemStack stack, ItemDisplayContext displayContext, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay) {
             boolean filled = PortableStructureContainerItem.hasStoredVehicle(stack);
             boolean disposable = stack.is(ModItems.DISPOSABLE_VEHICLE_CONTAINER.get());
-            renderPortableStructureContainerModel(stack, poseStack, buffer, light, overlay, filled, disposable);
+            renderPortableStructureContainerModel(stack, displayContext, poseStack, buffer, light, overlay, filled, disposable);
         }
 
-        private static void renderPortableStructureContainerModel(ItemStack stack, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay, boolean filled, boolean disposable) {
+        private static void renderPortableStructureContainerModel(ItemStack stack, ItemDisplayContext displayContext, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay, boolean filled, boolean disposable) {
             Minecraft minecraft = Minecraft.getInstance();
             ModelManager modelManager = minecraft.getItemRenderer().getItemModelShaper().getModelManager();
             float timeSeconds = Util.getMillis() / 1000.0F;
-            renderPortableStructureContainerModelAtTime(minecraft, modelManager, stack, poseStack, buffer, light, overlay, filled, disposable, timeSeconds);
+            renderPortableStructureContainerModelAtTime(minecraft, modelManager, stack, poseStack, buffer, light, overlay, filled, disposable, timeSeconds, displayContext);
         }
 
         private static void renderPortableStructureContainerModelAtTime(
@@ -512,7 +520,8 @@ public final class ClientItemRenderRegistry {
                 int overlay,
                 boolean filled,
                 boolean disposable,
-                float timeSeconds
+                float timeSeconds,
+                ItemDisplayContext displayContext
         ) {
             float floatAmplitude = (filled ? FILLED_FLOAT_AMPLITUDE_PX : BASE_FLOAT_AMPLITUDE_PX) / 16.0F;
             float floatSpeed = filled ? FILLED_FLOAT_CYCLES_PER_SECOND : BASE_FLOAT_CYCLES_PER_SECOND;
@@ -528,10 +537,35 @@ public final class ClientItemRenderRegistry {
             renderAnimatedPart(minecraft, modelManager, stack, poseStack, buffer, light, overlay, group2, GROUP2_PIVOT, 0.0F, topOffset, 0.0F, 0.0F, 0.0F, 0.0F);
 
             float baseCoreSpin = timeSeconds * (filled ? FILLED_CORE_SPIN_DEGREES_PER_SECOND : BASE_CORE_SPIN_DEGREES_PER_SECOND);
+            float energyTime = timeSeconds;
+            float activity = 0F;
+            if (!stack.isEmpty()) {
+                boolean held = displayContext == ItemDisplayContext.FIRST_PERSON_LEFT_HAND
+                        || displayContext == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                        || displayContext == ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                        || displayContext == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+                ContainerMotion motion = held ? HELD_MOTION.computeIfAbsent(displayContext, ignored -> new ContainerMotion())
+                        : MOTION.computeIfAbsent(stack, ignored -> new ContainerMotion());
+                long now = System.nanoTime();
+                boolean capturing = minecraft.player != null && minecraft.player.isUsingItem()
+                        && held && ItemStack.isSameItemSameComponents(minecraft.player.getUseItem(), stack)
+                        && ContainerCaptureHud.isCapturing();
+                motion.animation.advance((now - motion.lastNanos) / 1000000000D, capturing, filled);
+                motion.lastNanos = now;
+                baseCoreSpin = motion.animation.angle();
+                energyTime = motion.animation.energyTime();
+                activity = motion.animation.activity();
+            }
             renderAnimatedPart(minecraft, modelManager, stack, poseStack, buffer, light, overlay, group3, GROUP3_PIVOT, 0.0F, 0.0F, 0.0F, 0.0F, baseCoreSpin, 0.0F);
 
-            if (filled) {
-                renderContainmentCore(poseStack, buffer, timeSeconds);
+            if (filled || activity > 0.01F) {
+                poseStack.pushPose();
+                poseStack.translate(0.5F, 0.25F, 0.5F);
+                float pulseScale = 0.52F + activity * 0.025F * Mth.sin(energyTime * 7F);
+                poseStack.scale(pulseScale, pulseScale, pulseScale);
+                poseStack.translate(-0.5F, -0.25F, -0.5F);
+                renderContainmentCore(poseStack, buffer, energyTime);
+                poseStack.popPose();
             }
         }
 
@@ -664,7 +698,8 @@ public final class ClientItemRenderRegistry {
                 overlay,
                 filled,
                 false,
-                Util.getMillis() / 1000.0F
+                Util.getMillis() / 1000.0F,
+                ItemDisplayContext.NONE
         );
     }
 

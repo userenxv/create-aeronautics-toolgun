@@ -3,7 +3,6 @@ package com.enxv.aeronauticsstructuretool;
 import com.enxv.aeronauticsstructuretool.blueprint.capture.NativeBlueprintCaptureService;
 import com.enxv.aeronauticsstructuretool.blueprint.lifecycle.ConnectedStructureRemovalService;
 import com.enxv.aeronauticsstructuretool.blueprint.lifecycle.ConnectedStructureSnapshot;
-import com.enxv.aeronauticsstructuretool.blueprint.lifecycle.ConnectedStructureSnapshotService;
 import com.enxv.aeronauticsstructuretool.blueprint.model.CapturedBlueprintArchive;
 import com.enxv.aeronauticsstructuretool.blueprint.model.NativeBlueprintPlacementResult;
 import com.enxv.aeronauticsstructuretool.blueprint.placement.BlueprintPlacementTargetResolver;
@@ -13,9 +12,17 @@ import com.enxv.aeronauticsstructuretool.blueprint.storage.BlueprintFileReposito
 import com.enxv.aeronauticsstructuretool.core.FailureMessages;
 import com.enxv.aeronauticsstructuretool.vehicle.container.PortableContainerAuditLogger;
 import com.enxv.aeronauticsstructuretool.vehicle.container.PortableContainerStorage;
+import com.enxv.aeronauticsstructuretool.vehicle.container.ContainerCaptureBlocks;
+import com.enxv.aeronauticsstructuretool.vehicle.container.ContainerCaptureCommit;
+import com.enxv.aeronauticsstructuretool.vehicle.container.ContainerCaptureConfig;
+import com.enxv.aeronauticsstructuretool.vehicle.container.ContainerCaptureReceipt;
+import com.enxv.aeronauticsstructuretool.server.ServerServices;
+import com.enxv.aeronauticsstructuretool.blueprint.codec.BlueprintArchiveCodec;
+import com.enxv.aeronauticsstructuretool.blueprint.codec.NativeBlueprintReader;
 
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,6 +39,9 @@ import net.minecraft.world.level.block.Block;
 import org.joml.Vector3d;
 
 import java.util.List;
+import java.util.HashSet;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.UseAnim;
 
 public final class PortableStructureContainerItem extends Item {
     private static final String DEFAULT_BLUEPRINT_NAME = "portable_structure";
@@ -67,26 +77,42 @@ public final class PortableStructureContainerItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         ItemStack stack = context.getItemInHand();
+        if (ContainerCaptureReceipt.placementBlocked(stack)) {
+            if (context.getPlayer() instanceof ServerPlayer player) {
+                player.sendSystemMessage(Component.translatable("message.create_aeronautics_toolgun.capture_recovery"));
+            }
+            return InteractionResult.CONSUME;
+        }
         if (this.canPlacePrinter
                 && !PortableContainerStorage.hasStoredBlueprint(stack)
                 && context.getPlayer() != null
                 && context.getPlayer().isCrouching()
+                && Sable.HELPER.getContaining(level, context.getClickedPos()) == null
                 && context.getClickedFace() == Direction.UP) {
             return placePrinter(context);
         }
 
         if (!(level instanceof ServerLevel serverLevel)) {
-            return InteractionResult.sidedSuccess(true);
+            if (!PortableContainerStorage.hasStoredBlueprint(stack)
+                    && context.getPlayer() != null) {
+                context.getPlayer().startUsingItem(context.getHand());
+            }
+            return InteractionResult.CONSUME;
         }
 
         try {
             if (PortableContainerStorage.hasStoredBlueprint(stack)) {
                 placeStoredBlueprint(serverLevel, context, stack);
             } else {
-                captureIntoItem(serverLevel, context, stack);
+                if (context.getPlayer() instanceof ServerPlayer player) {
+                    ServerServices.CONTAINER_CAPTURE.begin(player, context, this);
+                }
             }
             return InteractionResult.SUCCESS;
         } catch (Exception exception) {
+            if (PortableContainerStorage.hasStoredBlueprint(stack) && exception.getSuppressed().length > 0) {
+                ContainerCaptureReceipt.blockPlacement(stack);
+            }
             AeronauticsStructureToolMod.LOGGER.error(
                     "Portable container operation failed at {} in {}",
                     context.getClickedPos(),
@@ -101,6 +127,25 @@ public final class PortableStructureContainerItem extends Item {
             }
             return InteractionResult.FAIL;
         }
+    }
+
+    @Override
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        if (!PortableContainerStorage.hasStoredBlueprint(stack)
+                && Sable.HELPER.getContaining(context.getLevel(), context.getClickedPos()) != null) {
+            return useOn(context);
+        }
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.NONE;
     }
 
     private static InteractionResult placePrinter(UseOnContext context) {
@@ -137,65 +182,71 @@ public final class PortableStructureContainerItem extends Item {
         }
     }
 
-    private void captureIntoItem(ServerLevel level, UseOnContext context, ItemStack stack) throws Exception {
-        BlockPos clickedPos = context.getClickedPos();
-        SubLevel containing = Sable.HELPER.getContaining(level, clickedPos);
-        if (containing == null) {
-            throw new IllegalStateException("target is not a physical structure");
-        }
-
+    public void captureVehicle(ServerLevel level, ServerPlayer player, ItemStack stack, ServerSubLevel containing,
+                               List<ServerSubLevel> expected, long expectedBlocks, double progressTicks) throws Exception {
         String blueprintName = resolveBlueprintName(containing);
-        ConnectedStructureSnapshot snapshot = containing instanceof dev.ryanhcode.sable.sublevel.ServerSubLevel serverSubLevel
-                ? ConnectedStructureSnapshotService.capture(
-                        level,
-                        serverSubLevel,
-                        CONNECTED_SUBLEVEL_AABB_EXPANSION_BLOCKS
-                )
-                : null;
-        CapturedBlueprintArchive saved = NativeBlueprintCaptureService.captureAtBlock(
+        ConnectedStructureSnapshot snapshot = new ConnectedStructureSnapshot(containing.getUniqueId(),
+                expected.size(), expected.stream().mapToDouble(sub -> sub.getMassTracker().getMass()).sum());
+        CapturedBlueprintArchive saved = NativeBlueprintCaptureService.captureById(
                 level,
-                clickedPos,
+                containing.getUniqueId(),
                 blueprintName,
                 CONNECTED_SUBLEVEL_AABB_EXPANSION_BLOCKS
         );
+        var document = NativeBlueprintReader.read(BlueprintArchiveCodec.decode(saved.fileContents()));
+        var capturedIds = document.sublevels().stream().map(sub -> sub.originalId()).toList();
+        var expectedIds = expected.stream().map(ServerSubLevel::getUniqueId).toList();
+        if (!new HashSet<>(capturedIds).equals(new HashSet<>(expectedIds))
+                || ContainerCaptureBlocks.countArchive(level, saved.fileContents()) != expectedBlocks
+                || progressTicks < ContainerCaptureConfig.durationTicks(expectedBlocks)) {
+            throw new IllegalStateException("structure changed during capture; no originals were removed");
+        }
+        ItemStack prepared = stack.copy();
         byte[] normalizedBlueprint = PortableContainerStorage.prepareCapturedBlueprint(
                 level,
-                stack,
+                prepared,
                 snapshot,
                 saved.fileContents(),
                 this.repairIntegration
         );
         PortableContainerStorage.writeStoredBlueprint(
-                stack,
+                prepared,
                 saved.fileName(),
                 normalizedBlueprint,
                 saved.materialSummary(),
-                PortableContainerStorage.readContainerId(stack),
+                PortableContainerStorage.readContainerId(prepared),
                 this.repairIntegration
         );
         if (this.repairIntegration) {
-            PortableContainerStorage.clearActivePlacedRepairTracking(stack);
+            PortableContainerStorage.clearActivePlacedRepairTracking(prepared);
         }
-        ConnectedStructureRemovalService.removeAt(
-                level,
-                clickedPos,
-                CONNECTED_SUBLEVEL_AABB_EXPANSION_BLOCKS
-        );
-        if (this.repairIntegration && context.getPlayer() instanceof ServerPlayer serverPlayer) {
-            if (snapshot != null) {
-                PortableContainerAuditLogger.logCapture(serverPlayer, snapshot.rootStructureId(), snapshot.structureCount(), snapshot.totalMass());
-            } else {
-                PortableContainerAuditLogger.logCapture(
-                        serverPlayer,
-                        null,
-                        PortableContainerStorage.countStoredStructures(normalizedBlueprint),
-                        -1.0D
-                );
+        ContainerCaptureReceipt.prepare(prepared, level.dimension().location().toString(), expectedIds);
+        ServerServices.CONTAINER_CAPTURE.backup(snapshot.rootStructureId(), normalizedBlueprint);
+        ContainerCaptureCommit.execute(expected, new ContainerCaptureCommit.Store<ServerSubLevel>() {
+            @Override
+            public void prepare(List<ServerSubLevel> originals) {
+                stack.applyComponents(prepared.getComponents());
             }
+
+            @Override
+            public void removeOriginal(ServerSubLevel original) throws Exception {
+                ConnectedStructureRemovalService.removeExact(level, List.of(original));
+            }
+
+            @Override
+            public void confirmRemoved(ServerSubLevel original) {
+                ContainerCaptureReceipt.confirmRemoved(stack, original.getUniqueId());
+            }
+
+            @Override
+            public void finish() {
+                ContainerCaptureReceipt.finish(stack);
+            }
+        });
+        if (this.repairIntegration) {
+            PortableContainerAuditLogger.logCapture(player, snapshot.rootStructureId(), snapshot.structureCount(), snapshot.totalMass());
         }
-        if (context.getPlayer() != null) {
-            context.getPlayer().sendSystemMessage(Component.translatable("message.create_aeronautics_toolgun.portable_container_captured"));
-        }
+        player.sendSystemMessage(Component.translatable("message.create_aeronautics_toolgun.portable_container_captured"));
     }
 
     private void placeStoredBlueprint(ServerLevel level, UseOnContext context, ItemStack stack) throws Exception {
@@ -248,6 +299,14 @@ public final class PortableStructureContainerItem extends Item {
                 context.getPlayer() instanceof ServerPlayer serverPlayer ? serverPlayer.getUUID() : null,
                 null
         );
+        // Placement has committed. Ancillary repair tracking must not leave a second usable archive behind.
+        PortableContainerStorage.clearStoredBlueprint(stack);
+        if (this.consumeAfterPlacement) {
+            stack.shrink(1);
+            if (context.getPlayer() != null) {
+                context.getPlayer().setItemInHand(context.getHand(), ItemStack.EMPTY);
+            }
+        }
         ConnectedStructureSnapshot snapshot = new ConnectedStructureSnapshot(
                 placementResult.rootSubLevel().getUniqueId(),
                 placementResult.placedSubLevelCount(),
@@ -277,15 +336,6 @@ public final class PortableStructureContainerItem extends Item {
             );
         } else if (this.repairIntegration) {
             PortableContainerStorage.rememberPlacedRepairTracking(stack, storedBlueprint, null);
-        }
-        if (this.consumeAfterPlacement) {
-            PortableContainerStorage.clearStoredBlueprint(stack);
-            stack.shrink(1);
-            if (context.getPlayer() != null) {
-                context.getPlayer().setItemInHand(context.getHand(), ItemStack.EMPTY);
-            }
-        } else {
-            PortableContainerStorage.clearStoredBlueprint(stack);
         }
         if (context.getPlayer() != null) {
             context.getPlayer().sendSystemMessage(Component.translatable("message.create_aeronautics_toolgun.portable_container_placed"));

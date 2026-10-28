@@ -38,6 +38,18 @@ public final class ConnectedSubLevelCollector {
             ServerSubLevel rootSubLevel,
             double maximumNeighborGap
     ) throws IOException {
+        return collect(level, rootSubLevel, maximumNeighborGap, false);
+    }
+
+    public static List<ServerSubLevel> collectLoaded(
+            ServerLevel level, ServerSubLevel rootSubLevel, double maximumNeighborGap
+    ) throws IOException {
+        return collect(level, rootSubLevel, maximumNeighborGap, true);
+    }
+
+    private static List<ServerSubLevel> collect(
+            ServerLevel level, ServerSubLevel rootSubLevel, double maximumNeighborGap, boolean loadedOnly
+    ) throws IOException {
         if (!Double.isFinite(maximumNeighborGap)) {
             throw new IOException("connected sublevel proximity must be a finite value");
         }
@@ -67,7 +79,7 @@ public final class ConnectedSubLevelCollector {
         while (!queue.isEmpty()) {
             ServerSubLevel current = queue.remove();
             enqueueNew(findToolgunConnections(current, allSublevels), discovered, queue, queued);
-            enqueueNew(findDeclaredConnections(level, current), discovered, queue, queued);
+            enqueueNew(findDeclaredConnections(level, current, loadedOnly), discovered, queue, queued);
             if (maximumNeighborGap >= 0.0D) enqueueNew(findNeighbors(current, allSublevels, maximumNeighborGap), discovered, queue, queued);
         }
         return new ArrayList<>(discovered);
@@ -107,11 +119,20 @@ public final class ConnectedSubLevelCollector {
 
     private static List<ServerSubLevel> findDeclaredConnections(
             ServerLevel level,
-            ServerSubLevel current
+            ServerSubLevel current,
+            boolean loadedOnly
     ) {
         LinkedHashSet<ServerSubLevel> results = new LinkedHashSet<>();
         PlotBlockTransform transform = PlotBlockTransform.capture(current);
-        for (BlockEntity blockEntity : transform.findBlockEntities(level)) {
+        List<BlockEntity> blockEntities = new ArrayList<>();
+        if (loadedOnly) {
+            for (var holder : current.getPlot().getLoadedChunks()) {
+                blockEntities.addAll(holder.getChunk().getBlockEntities().values());
+            }
+        } else {
+            blockEntities = transform.findBlockEntities(level);
+        }
+        for (BlockEntity blockEntity : blockEntities) {
             if (!(blockEntity instanceof BlockEntitySubLevelActor actor)) {
                 continue;
             }

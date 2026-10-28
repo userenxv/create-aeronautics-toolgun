@@ -153,6 +153,12 @@ def compatibilitySymbols = verificationJavaExec(
         'com.enxv.aeronauticsstructuretool.verification.CompatibilitySymbolCheck'
 )
 
+verificationJavaExec(
+        'verifyContainerCapture',
+        'Check timed capture, partial-removal safety, persistent receipts, and smooth rotor acceleration.',
+        'com.enxv.aeronauticsstructuretool.vehicle.container.ContainerCaptureRegressionCheck'
+)
+
 def compatibilityArtifacts = tasks.register('prepareCompatibilityArtifacts', Sync) {
     into layout.buildDirectory.dir('compatibility-artifacts')
     from(configurations.primaryCreate) {
@@ -178,6 +184,7 @@ compatibilitySymbols.configure {
 
 tasks.named('check').configure {
     dependsOn tasks.named('verifySourceHygiene')
+    dependsOn tasks.named('verifyContainerCapture')
     dependsOn tasks.named('compileLegacySableJava')
     dependsOn tasks.named('verifyBlueprintPlacement')
     dependsOn tasks.named('verifySynaxisBlueprintNbt')

@@ -2,7 +2,6 @@ package com.enxv.aeronauticsstructuretool.blueprint.placement;
 
 import com.enxv.aeronauticsstructuretool.AeronauticsStructureToolMod;
 import com.enxv.aeronauticsstructuretool.blueprint.lifecycle.SubLevelRemovalCoordinator;
-import com.enxv.aeronauticsstructuretool.blueprint.model.LoadedSubLevel;
 
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
@@ -18,13 +17,13 @@ public final class BlueprintPlacementRollback {
 
     public static void rollback(
             ServerSubLevelContainer container,
-            Collection<LoadedSubLevel> loadedSublevels,
+            Collection<ServerSubLevel> allocatedSublevels,
             String blueprintName,
             IOException placementFailure
     ) {
-        List<LoadedSubLevel> reverseOrder = new ArrayList<>(loadedSublevels);
+        List<ServerSubLevel> reverseOrder = new ArrayList<>(allocatedSublevels);
         for (int index = reverseOrder.size() - 1; index >= 0; index--) {
-            ServerSubLevel subLevel = reverseOrder.get(index).subLevel();
+            ServerSubLevel subLevel = reverseOrder.get(index);
             try {
                 if (container.getSubLevel(subLevel.getUniqueId()) == subLevel) {
                     SubLevelRemovalCoordinator.remove(
@@ -32,6 +31,9 @@ public final class BlueprintPlacementRollback {
                             container,
                             List.of(subLevel)
                     );
+                    if (container.getSubLevel(subLevel.getUniqueId()) == subLevel) {
+                        throw new IllegalStateException("placement rollback left a live sublevel: " + subLevel.getUniqueId());
+                    }
                 }
             } catch (RuntimeException rollbackFailure) {
                 placementFailure.addSuppressed(rollbackFailure);

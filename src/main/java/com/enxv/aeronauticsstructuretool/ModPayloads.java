@@ -64,6 +64,7 @@ public final class ModPayloads {
         registrar.playToClient(SpawnPortableStructurePrinterEffectPayload.TYPE, SpawnPortableStructurePrinterEffectPayload.STREAM_CODEC, ClientPayloadHandlers::handleSpawnPortableStructurePrinterEffect);
         registrar.playToClient(CompletePortableStructurePrinterEffectPayload.TYPE, CompletePortableStructurePrinterEffectPayload.STREAM_CODEC, ClientPayloadHandlers::handleCompletePortableStructurePrinterEffect);
         registrar.playToClient(MagneticGunStartResultPayload.TYPE, MagneticGunStartResultPayload.STREAM_CODEC, ClientPayloadHandlers::handleMagneticGunStartResult);
+        registrar.playToClient(SyncContainerCapturePayload.TYPE, SyncContainerCapturePayload.STREAM_CODEC, ClientPayloadHandlers::handleContainerCapture);
     }
 
 }

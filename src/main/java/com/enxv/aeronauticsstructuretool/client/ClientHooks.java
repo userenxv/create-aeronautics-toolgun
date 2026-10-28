@@ -6,6 +6,7 @@ import com.enxv.aeronauticsstructuretool.client.render.ClientBeamRenderer;
 import com.enxv.aeronauticsstructuretool.client.render.ClientItemRenderRegistry;
 import com.enxv.aeronauticsstructuretool.client.render.PortableStructurePrinterBlockEntityRenderer;
 import com.enxv.aeronauticsstructuretool.client.render.ClientToolOverlayRenderer;
+import com.enxv.aeronauticsstructuretool.client.render.ContainerCaptureHud;
 import com.enxv.aeronauticsstructuretool.client.tool.MagneticGunClientController;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -120,6 +121,7 @@ public final class ClientHooks {
 
         @SubscribeEvent
         public static void onClientTick(ClientTickEvent.Post event) {
+            ContainerCaptureHud.tick();
             ClientToolInputController.onClientTick();
             ClientBeamRenderer.tick(Minecraft.getInstance());
         }
@@ -132,6 +134,7 @@ public final class ClientHooks {
         @SubscribeEvent
         public static void onRenderGui(RenderGuiEvent.Post event) {
             ClientToolOverlayRenderer.renderGui(event);
+            ContainerCaptureHud.render(event);
         }
 
         @SubscribeEvent
@@ -141,6 +144,10 @@ public final class ClientHooks {
 
         @SubscribeEvent
         public static void onInteractionKeyTriggered(InputEvent.InteractionKeyMappingTriggered event) {
+            ContainerCaptureHud.onInteraction(event);
+            if (event.isCanceled()) {
+                return;
+            }
             ClientToolInputController.onInteractionKeyTriggered(event);
         }
     }

@@ -8,6 +8,7 @@ import com.enxv.aeronauticsstructuretool.SyncPortableStructurePrinterStatePayloa
 import com.enxv.aeronauticsstructuretool.SyncQueryVehiclePreviewPayload;
 import com.enxv.aeronauticsstructuretool.SyncQueryVehiclesPayload;
 import com.enxv.aeronauticsstructuretool.MagneticGunStartResultPayload;
+import com.enxv.aeronauticsstructuretool.SyncContainerCapturePayload;
 import com.enxv.aeronauticsstructuretool.core.ModConstants;
 import com.enxv.aeronauticsstructuretool.blueprint.storage.BlueprintFileRepository;
 import net.minecraft.core.BlockPos;
@@ -25,6 +26,12 @@ public final class ClientPayloadHandlers {
     private static final String MAGNETIC_GUN_CONTROLLER = "com.enxv.aeronauticsstructuretool.client.tool.MagneticGunClientController";
 
     private ClientPayloadHandlers() {
+    }
+
+    public static void handleContainerCapture(SyncContainerCapturePayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> invokeClientStatic(
+                "com.enxv.aeronauticsstructuretool.client.render.ContainerCaptureHud",
+                "receive", SyncContainerCapturePayload.class, payload));
     }
 
     public static void handleOpenPortableStructurePrinter(OpenPortableStructurePrinterPayload payload, IPayloadContext context) {
