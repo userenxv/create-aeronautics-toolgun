@@ -32,13 +32,9 @@ public final class ClientItemRenderRegistry {
     private static final ModelResourceLocation PRINT_BODY_MODEL = model("item/print_gun_body");
     private static final ModelResourceLocation PRINT_ENERGY_MODEL = model("item/print_gun_energy");
     private static final ModelResourceLocation PRINT_FOCUS_MODEL = model("item/print_gun_focus");
-    private static final ModelResourceLocation PRINT_RIGHT_LOWER_RAIL_MODEL = model("item/print_gun_right_lower_rail");
-    private static final ModelResourceLocation PRINT_RIGHT_UPPER_RAIL_MODEL = model("item/print_gun_right_upper_rail");
     private static final ModelResourceLocation SURVIVAL_PRINT_BODY_MODEL = model("item/survival_structure_tool_body");
     private static final ModelResourceLocation SURVIVAL_PRINT_ENERGY_MODEL = model("item/survival_structure_tool_energy");
     private static final ModelResourceLocation SURVIVAL_PRINT_FOCUS_MODEL = model("item/survival_structure_tool_focus");
-    private static final ModelResourceLocation SURVIVAL_PRINT_RIGHT_LOWER_RAIL_MODEL = model("item/survival_structure_tool_right_lower_rail");
-    private static final ModelResourceLocation SURVIVAL_PRINT_RIGHT_UPPER_RAIL_MODEL = model("item/survival_structure_tool_right_upper_rail");
     private static final ModelResourceLocation MAGNETIC_BODY_MODEL = model("item/magnetic_gun_body");
     private static final ModelResourceLocation MAGNETIC_ENERGY_MODEL = model("item/magnetic_gun_energy");
     private static final ModelResourceLocation MAGNETIC_TOP_CLAW_MODEL = model("item/magnetic_gun_claw_top");
@@ -50,8 +46,6 @@ public final class ClientItemRenderRegistry {
     private static final ModelResourceLocation CREATIVE_MAGNETIC_LEFT_CLAW_MODEL = model("item/creative_magnetic_gun_claw_left");
     private static final ModelResourceLocation CREATIVE_MAGNETIC_RIGHT_CLAW_MODEL = model("item/creative_magnetic_gun_claw_right");
     private static final Vector3f ENERGY_PIVOT = pixels(8.0F, 8.75F, 13.0F);
-    private static final Vector3f RIGHT_LOWER_RAIL_PIVOT = pixels(11.0F, 6.75F, 0.0F);
-    private static final Vector3f RIGHT_UPPER_RAIL_PIVOT = pixels(11.0F, 11.0F, 0.0F);
     private static final Vector3f TOP_CLAW_PIVOT = pixels(8.0F, 11.2F, 6.6F);
     private static final Vector3f LEFT_CLAW_PIVOT = pixels(5.1F, 6.3F, 5.0F);
     private static final Vector3f RIGHT_CLAW_PIVOT = pixels(10.9F, 6.3F, 5.0F);
@@ -91,16 +85,12 @@ public final class ClientItemRenderRegistry {
                 PRINT_BODY_MODEL,
                 PRINT_ENERGY_MODEL,
                 PRINT_FOCUS_MODEL,
-                PRINT_RIGHT_LOWER_RAIL_MODEL,
-                PRINT_RIGHT_UPPER_RAIL_MODEL,
                 "print_gun"
         )), ModItems.STRUCTURE_TOOL.get());
         event.registerItem(clientExtensions(toolGunRenderer(
                 SURVIVAL_PRINT_BODY_MODEL,
                 SURVIVAL_PRINT_ENERGY_MODEL,
                 SURVIVAL_PRINT_FOCUS_MODEL,
-                SURVIVAL_PRINT_RIGHT_LOWER_RAIL_MODEL,
-                SURVIVAL_PRINT_RIGHT_UPPER_RAIL_MODEL,
                 "survival_print_gun"
         )), ModItems.SURVIVAL_STRUCTURE_TOOL.get());
         event.registerItem(clientExtensions(magneticGunRenderer(
@@ -153,11 +143,9 @@ public final class ClientItemRenderRegistry {
             ModelResourceLocation body,
             ModelResourceLocation energy,
             ModelResourceLocation focus,
-            ModelResourceLocation rightLowerRail,
-            ModelResourceLocation rightUpperRail,
             String animationKey
     ) {
-        return new ToolGunRenderer(body, energy, focus, rightLowerRail, rightUpperRail, animationKey);
+        return new ToolGunRenderer(body, energy, focus, animationKey);
     }
 
     private static MagneticGunRenderer magneticGunRenderer(
@@ -292,13 +280,9 @@ public final class ClientItemRenderRegistry {
         event.register(PRINT_BODY_MODEL);
         event.register(PRINT_ENERGY_MODEL);
         event.register(PRINT_FOCUS_MODEL);
-        event.register(PRINT_RIGHT_LOWER_RAIL_MODEL);
-        event.register(PRINT_RIGHT_UPPER_RAIL_MODEL);
         event.register(SURVIVAL_PRINT_BODY_MODEL);
         event.register(SURVIVAL_PRINT_ENERGY_MODEL);
         event.register(SURVIVAL_PRINT_FOCUS_MODEL);
-        event.register(SURVIVAL_PRINT_RIGHT_LOWER_RAIL_MODEL);
-        event.register(SURVIVAL_PRINT_RIGHT_UPPER_RAIL_MODEL);
         event.register(MAGNETIC_BODY_MODEL);
         event.register(MAGNETIC_ENERGY_MODEL);
         event.register(MAGNETIC_TOP_CLAW_MODEL);
@@ -322,24 +306,18 @@ public final class ClientItemRenderRegistry {
         private final ModelResourceLocation bodyModel;
         private final ModelResourceLocation energyModel;
         private final ModelResourceLocation focusModel;
-        private final ModelResourceLocation rightLowerRailModel;
-        private final ModelResourceLocation rightUpperRailModel;
         private final String animationKey;
 
         private ToolGunRenderer(
                 ModelResourceLocation bodyModel,
                 ModelResourceLocation energyModel,
                 ModelResourceLocation focusModel,
-                ModelResourceLocation rightLowerRailModel,
-                ModelResourceLocation rightUpperRailModel,
                 String animationKey
         ) {
             super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
             this.bodyModel = bodyModel;
             this.energyModel = energyModel;
             this.focusModel = focusModel;
-            this.rightLowerRailModel = rightLowerRailModel;
-            this.rightUpperRailModel = rightUpperRailModel;
             this.animationKey = animationKey;
         }
 
@@ -357,14 +335,6 @@ public final class ClientItemRenderRegistry {
             captureMuzzlePosition(stack, displayContext, poseStack, TOOL_MUZZLE_POINT);
             renderModel(minecraft.getItemRenderer(), modelManager.getModel(this.bodyModel),
                     stack, poseStack, buffer, light, overlay);
-            renderTransformedModel(minecraft, modelManager, stack, poseStack, buffer, light, overlay,
-                    this.rightLowerRailModel, RIGHT_LOWER_RAIL_PIVOT,
-                    0.0F, 0.0F, 0.0F,
-                    0.0F, 0.0F, 157.5F);
-            renderTransformedModel(minecraft, modelManager, stack, poseStack, buffer, light, overlay,
-                    this.rightUpperRailModel, RIGHT_UPPER_RAIL_PIVOT,
-                    0.0F, 0.0F, 0.0F,
-                    0.0F, 0.0F, -157.5F);
             AnimationSample animation = RotationPulseState.sample(
                     this.animationKey, ENERGY_IDLE_SPEED_DEGREES_PER_SECOND, stack, displayContext
             );
