@@ -9,7 +9,7 @@ public record LoadBlueprintRequest(
         double hitX,
         double hitY,
         double hitZ,
-        int rotationDegrees,
+        double rotationDegrees,
         int scalePercent,
         int offsetX,
         int offsetY,
