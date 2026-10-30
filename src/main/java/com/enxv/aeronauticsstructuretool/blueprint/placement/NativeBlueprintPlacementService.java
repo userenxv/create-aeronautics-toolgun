@@ -225,7 +225,8 @@ public final class NativeBlueprintPlacementService {
                     loadedSublevels,
                     placeContext,
                     synaxisLoad,
-                    driveByWireLoad
+                    driveByWireLoad,
+                    com.enxv.aeronauticsstructuretool.compat.sableschematicapi.FireControlBlueprintCompat.preparePlacement(root, loadedSublevels)
             );
 
             LoadedSubLevelAlignment.alignAll(loadedSublevels, rootBlueprintId, target);
@@ -424,7 +425,8 @@ public final class NativeBlueprintPlacementService {
             Map<UUID, LoadedSubLevel> loadedSublevels,
             SubLevelSchematicSerializationContext placeContext,
             SynaxisLoadSession synaxisLoad,
-            DriveByWireLoadSession driveByWireLoad
+            DriveByWireLoadSession driveByWireLoad,
+            com.enxv.aeronauticsstructuretool.compat.sableschematicapi.FireControlBlueprintCompat.Placement fireControlSession
     ) throws IOException {
         int totalBlockEntities = 0;
         int totalRuntimeContraptions = 0;
@@ -446,6 +448,7 @@ public final class NativeBlueprintPlacementService {
                         loaded.subLevel()
                 );
                 synaxisLoad.collectPlot(plotTag);
+                fireControlSession.preparePlot(plotTag, loaded);
                 driveByWireLoad.preparePlot(plotTag, placeContext, loadedSublevels);
                 loaded.subLevel().getPlot().load(plotTag);
                 totalRuntimeContraptions += loaded.saved().runtimeContraptions().size();

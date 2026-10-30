@@ -253,6 +253,7 @@ public final class NativeBlueprintCaptureService {
         }
 
         root.put(NativeBlueprintFormat.SUBLEVELS_TAG, sublevelsTag);
+        com.enxv.aeronauticsstructuretool.compat.sableschematicapi.FireControlBlueprintCompat.capture(root, plan);
         CompoundTag sableBlueprintApiSidecar = SableBlueprintApiCompat.capture(plan, aggregateBounds);
         if (!sableBlueprintApiSidecar.isEmpty()) {
             root.put(NativeBlueprintFormat.SABLE_BLUEPRINT_API_SIDECAR_TAG, sableBlueprintApiSidecar);
