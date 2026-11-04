@@ -199,6 +199,8 @@ dependencies {
 
     implementation primaryNestedJars
     compileOnly files(configurations.sableSchematicApi)
+    // Optional integration; never bundled or required by ordinary installations.
+    compileOnly('maven.modrinth:create-coasters-simulated:0.1.5') { transitive = false }
 }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {

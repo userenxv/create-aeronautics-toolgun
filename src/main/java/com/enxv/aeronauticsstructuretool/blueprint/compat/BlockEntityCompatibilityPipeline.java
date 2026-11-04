@@ -4,6 +4,7 @@ import com.enxv.aeronauticsstructuretool.blueprint.model.CapturePlan;
 import com.enxv.aeronauticsstructuretool.blueprint.model.CapturedSubLevel;
 import com.enxv.aeronauticsstructuretool.blueprint.model.LoadedSubLevel;
 import com.enxv.aeronauticsstructuretool.compat.aeronautics.AeronauticsLinkBlueprintCompat;
+import com.enxv.aeronauticsstructuretool.compat.coasters.CoastersBlockEntityNbt;
 import com.enxv.aeronauticsstructuretool.compat.copycats.CopycatBlueprintCompat;
 import com.enxv.aeronauticsstructuretool.compat.create.CreateBlueprintCompat;
 import com.enxv.aeronauticsstructuretool.compat.hardblock.HardBlockBlueprintCompat;
@@ -40,6 +41,7 @@ public final class BlockEntityCompatibilityPipeline {
     ) {
         forEachBlockEntity(plotTag, tag -> {
             String id = tag.getString(ID_TAG);
+            CoastersBlockEntityNbt.save(id, tag, plan, currentSubLevel);
             if (SWIVEL_PLATE_ID.equals(id)) {
                 SimulatedStructureCompat.remapSwivelPlateForSave(tag, plan);
             } else if (SWIVEL_BEARING_ID.equals(id)) {
@@ -64,6 +66,7 @@ public final class BlockEntityCompatibilityPipeline {
     ) {
         forEachBlockEntity(plotTag, tag -> {
             String id = tag.getString(ID_TAG);
+            CoastersBlockEntityNbt.load(id, tag, loadedSublevels, currentSubLevel);
             if (SWIVEL_PLATE_ID.equals(id)) {
                 SimulatedStructureCompat.remapSwivelPlateForLoad(tag, loadedSublevels);
             } else if (SWIVEL_BEARING_ID.equals(id)) {

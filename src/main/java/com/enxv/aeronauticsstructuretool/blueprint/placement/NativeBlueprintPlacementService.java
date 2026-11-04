@@ -230,6 +230,8 @@ public final class NativeBlueprintPlacementService {
             );
 
             LoadedSubLevelAlignment.alignAll(loadedSublevels, rootBlueprintId, target);
+            com.enxv.aeronauticsstructuretool.compat.coasters.CoastersBlueprintCompat.restoreCartData(root, loadedSublevels, scaleFactor);
+            com.enxv.aeronauticsstructuretool.compat.coasters.CoastersBlueprintCompat.complete(level, loadedSublevels.values());
             diagnostics.run(
                     "Simulated rope attachments",
                     () -> SimulatedStructureCompat.refreshRopeAttachments(level, loadedSublevels)
@@ -431,7 +433,8 @@ public final class NativeBlueprintPlacementService {
         int totalBlockEntities = 0;
         int totalRuntimeContraptions = 0;
         Map<UUID, UUID> ropeIdRemap = new LinkedHashMap<>();
-        try {
+        try (var coasterScope = com.enxv.aeronauticsstructuretool.compat.coasters.CoastersPlacementScope.begin(
+                loadedSublevels.values().stream().map(entry -> entry.subLevel().getUniqueId()).collect(java.util.stream.Collectors.toSet()))) {
             SubLevelSchematicSerializationContext.setCurrentContext(placeContext);
             for (LoadedSubLevel loaded : loadedSublevels.values()) {
                 CompoundTag plotTag = loaded.saved().plotTag().copy();

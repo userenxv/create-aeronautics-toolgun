@@ -4,6 +4,9 @@
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "mixins": [
+    "compat.coasters.RivetBlockEntityMixin",
+    "compat.coasters.CoasterCartBearingTickCacheMixin",
+    "compat.coasters.CoasterCartIdIndexMixin",
     "compat.sable.PhysicsColliderBlockGetterAccess",
     "compat.sable.RapierVoxelColliderBakeryMixin"
   ],

@@ -152,6 +152,11 @@ def compatibilitySymbols = verificationJavaExec(
         'Inspect primary, legacy, and available optional-mod jars for every compatibility bridge symbol.',
         'com.enxv.aeronauticsstructuretool.verification.CompatibilitySymbolCheck'
 )
+verificationJavaExec(
+        'verifyCoastersBlueprint',
+        'Check coaster host migration, track references, independent cart copies, and placement scope cleanup.',
+        'com.enxv.aeronauticsstructuretool.compat.coasters.CoastersBlueprintRegressionCheck'
+)
 
 verificationJavaExec(
         'verifyContainerCapture',
@@ -183,6 +188,7 @@ compatibilitySymbols.configure {
 }
 
 tasks.named('check').configure {
+    dependsOn tasks.named('verifyCoastersBlueprint')
     dependsOn tasks.named('verifySourceHygiene')
     dependsOn tasks.named('verifyContainerCapture')
     dependsOn tasks.named('compileLegacySableJava')
