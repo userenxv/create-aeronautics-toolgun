@@ -33,6 +33,11 @@ Gradle downloads the pinned dependencies and runs the primary and legacy compati
 
 Issues and pull requests are welcome. Include the Minecraft/mod versions, a minimal reproduction, and the relevant log when reporting a bug. Run the full build before submitting code changes.
 
+## Credits
+
+- [Arthur](https://github.com/ArthurSimin) — mod icon.
+- [Okroshka (vety010)](https://github.com/vety010) — fix for saving oversized item stacks ([#7](https://github.com/userenxv/create-aeronautics-toolgun/pull/7)).
+
 ## License
 
 Source code and assets are licensed under CC BY-NC 4.0. Commercial use is not permitted. See [LICENSE](LICENSE).
