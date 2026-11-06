@@ -188,6 +188,7 @@ compatibilitySymbols.configure {
 }
 
 tasks.named('check').configure {
+    dependsOn tasks.named('verifyLetItWalk')
     dependsOn tasks.named('verifyCoastersBlueprint')
     dependsOn tasks.named('verifySourceHygiene')
     dependsOn tasks.named('verifyContainerCapture')
@@ -209,3 +210,9 @@ tasks.named('check').configure {
     dependsOn tasks.named('verifyStoredVehicleHealthGraph')
     dependsOn tasks.named('verifyCompatibilitySymbols')
 }
+
+verificationJavaExec(
+        'verifyLetItWalk',
+        'Check complete walker references, independent pilot bindings, inventory controls and runtime-state reset without the optional mod.',
+        'com.enxv.aeronauticsstructuretool.compat.letitwalk.LetItWalkRegressionCheck'
+)

@@ -2,6 +2,7 @@ package com.enxv.aeronauticsstructuretool.blueprint.capture;
 
 import com.enxv.aeronauticsstructuretool.ToolgunConstraintTracker;
 import com.enxv.aeronauticsstructuretool.compat.coasters.CoastersBlueprintCompat;
+import com.enxv.aeronauticsstructuretool.compat.letitwalk.LetItWalkBlueprintCompat;
 import com.enxv.aeronauticsstructuretool.toolgun.constraint.TrackedConstraint;
 import com.enxv.aeronauticsstructuretool.blueprint.geometry.PlotBlockTransform;
 import dev.ryanhcode.sable.api.SubLevelHelper;
@@ -66,6 +67,7 @@ public final class ConnectedSubLevelCollector {
 
         LinkedHashSet<ServerSubLevel> discovered = new LinkedHashSet<>();
         Map<UUID, Set<UUID>> coasterConnections = CoastersBlueprintCompat.connections(allSublevels.values());
+        Map<UUID, Set<UUID>> walkerConnections = LetItWalkBlueprintCompat.connections(allSublevels.values());
         discovered.add(rootSubLevel);
         for (SubLevel connected : SubLevelHelper.getConnectedChain(rootSubLevel)) {
             if (connected instanceof ServerSubLevel serverSubLevel) {
@@ -86,6 +88,12 @@ public final class ConnectedSubLevelCollector {
                 if (connected != null) coasterNeighbors.add(connected);
             }
             enqueueNew(coasterNeighbors, discovered, queue, queued);
+            List<ServerSubLevel> walkerNeighbors = new ArrayList<>();
+            for (UUID id : walkerConnections.getOrDefault(current.getUniqueId(), Set.of())) {
+                ServerSubLevel connected = allSublevels.get(id);
+                if (connected != null) walkerNeighbors.add(connected);
+            }
+            enqueueNew(walkerNeighbors, discovered, queue, queued);
             enqueueNew(findToolgunConnections(current, allSublevels), discovered, queue, queued);
             enqueueNew(findDeclaredConnections(level, current, loadedOnly), discovered, queue, queued);
             if (maximumNeighborGap >= 0.0D) enqueueNew(findNeighbors(current, allSublevels, maximumNeighborGap), discovered, queue, queued);

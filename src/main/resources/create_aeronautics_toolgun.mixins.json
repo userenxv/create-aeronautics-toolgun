@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "mixins": [
+    "compat.letitwalk.WalkerCoreBlockEntityMixin",
     "compat.coasters.RivetBlockEntityMixin",
     "compat.coasters.CoasterCartBearingTickCacheMixin",
     "compat.coasters.CoasterCartIdIndexMixin",

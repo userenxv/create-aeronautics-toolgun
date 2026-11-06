@@ -148,6 +148,7 @@ public final class NativeBlueprintCaptureService {
         }
 
         CapturePlan plan = CapturePlan.create(rootSubLevel, collectedSubLevels);
+        com.enxv.aeronauticsstructuretool.compat.letitwalk.LetItWalkBlueprintCompat.validateCapture(plan);
         SynaxisCaptureSession synaxisCapture = new SynaxisCaptureSession(level, plan);
         CompoundTag root = new CompoundTag();
         root.putString(NativeBlueprintFormat.FORMAT_TAG, NativeBlueprintFormat.CURRENT_FORMAT);

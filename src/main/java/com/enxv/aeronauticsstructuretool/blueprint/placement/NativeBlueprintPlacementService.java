@@ -24,6 +24,7 @@ import com.enxv.aeronauticsstructuretool.blueprint.storage.BlueprintFileReposito
 import com.enxv.aeronauticsstructuretool.compat.create.CreateBlueprintCompat;
 import com.enxv.aeronauticsstructuretool.compat.drivebywire.DriveByWireLoadResult;
 import com.enxv.aeronauticsstructuretool.compat.drivebywire.DriveByWireLoadSession;
+import com.enxv.aeronauticsstructuretool.compat.letitwalk.LetItWalkPlacement;
 import com.enxv.aeronauticsstructuretool.compat.sable.SableSchematicContextFactory;
 import com.enxv.aeronauticsstructuretool.compat.sableschematicapi.SableBlueprintApiCompat;
 import com.enxv.aeronauticsstructuretool.compat.simulated.SimulatedGlueBlueprintCompat;
@@ -147,6 +148,7 @@ public final class NativeBlueprintPlacementService {
         List<SavedSubLevelBlueprint> savedSublevels = document.sublevels();
         DriveByWireLoadSession driveByWireLoad = new DriveByWireLoadSession(safeName, savedSublevels);
         SynaxisLoadSession synaxisLoad = new SynaxisLoadSession(safeName, root);
+        LetItWalkPlacement walkerPlacement = new LetItWalkPlacement(savedSublevels);
         boolean hasRuntimeContraptions = savedSublevels.stream()
                 .anyMatch(saved -> !saved.runtimeContraptions().isEmpty());
         if (scalePercent != 100 && hasRuntimeContraptions) {
@@ -226,7 +228,9 @@ public final class NativeBlueprintPlacementService {
                     placeContext,
                     synaxisLoad,
                     driveByWireLoad,
-                    com.enxv.aeronauticsstructuretool.compat.sableschematicapi.FireControlBlueprintCompat.preparePlacement(root, loadedSublevels)
+                    com.enxv.aeronauticsstructuretool.compat.sableschematicapi.FireControlBlueprintCompat.preparePlacement(root, loadedSublevels),
+                    walkerPlacement,
+                    diagnostics
             );
 
             LoadedSubLevelAlignment.alignAll(loadedSublevels, rootBlueprintId, target);
@@ -428,7 +432,9 @@ public final class NativeBlueprintPlacementService {
             SubLevelSchematicSerializationContext placeContext,
             SynaxisLoadSession synaxisLoad,
             DriveByWireLoadSession driveByWireLoad,
-            com.enxv.aeronauticsstructuretool.compat.sableschematicapi.FireControlBlueprintCompat.Placement fireControlSession
+            com.enxv.aeronauticsstructuretool.compat.sableschematicapi.FireControlBlueprintCompat.Placement fireControlSession,
+            LetItWalkPlacement walkerPlacement,
+            BlueprintPlacementDiagnostics diagnostics
     ) throws IOException {
         int totalBlockEntities = 0;
         int totalRuntimeContraptions = 0;
@@ -453,6 +459,7 @@ public final class NativeBlueprintPlacementService {
                 synaxisLoad.collectPlot(plotTag);
                 fireControlSession.preparePlot(plotTag, loaded);
                 driveByWireLoad.preparePlot(plotTag, placeContext, loadedSublevels);
+                walkerPlacement.preparePlot(plotTag, diagnostics, loadedSublevels);
                 loaded.subLevel().getPlot().load(plotTag);
                 totalRuntimeContraptions += loaded.saved().runtimeContraptions().size();
             }
