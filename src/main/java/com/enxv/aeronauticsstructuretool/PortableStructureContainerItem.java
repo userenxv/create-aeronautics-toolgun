@@ -184,6 +184,7 @@ public final class PortableStructureContainerItem extends Item {
 
     public void captureVehicle(ServerLevel level, ServerPlayer player, ItemStack stack, ServerSubLevel containing,
                                List<ServerSubLevel> expected, long expectedBlocks, double progressTicks) throws Exception {
+        ContainerCaptureConfig.checkBlockLimit(expectedBlocks);
         String blueprintName = resolveBlueprintName(containing);
         ConnectedStructureSnapshot snapshot = new ConnectedStructureSnapshot(containing.getUniqueId(),
                 expected.size(), expected.stream().mapToDouble(sub -> sub.getMassTracker().getMass()).sum());
@@ -196,8 +197,12 @@ public final class PortableStructureContainerItem extends Item {
         var document = NativeBlueprintReader.read(BlueprintArchiveCodec.decode(saved.fileContents()));
         var capturedIds = document.sublevels().stream().map(sub -> sub.originalId()).toList();
         var expectedIds = expected.stream().map(ServerSubLevel::getUniqueId).toList();
+        long archivedBlocks = ContainerCaptureBlocks.countArchive(level, saved.fileContents());
+        // Reuse the existing archive verification count. No additional world scan, cache,
+        // async check, or destructive work before the server policy has been validated.
+        ContainerCaptureConfig.checkBlockLimit(archivedBlocks);
         if (!new HashSet<>(capturedIds).equals(new HashSet<>(expectedIds))
-                || ContainerCaptureBlocks.countArchive(level, saved.fileContents()) != expectedBlocks
+                || archivedBlocks != expectedBlocks
                 || progressTicks < ContainerCaptureConfig.durationTicks(expectedBlocks, player)) {
             throw new IllegalStateException("structure changed during capture; no originals were removed");
         }

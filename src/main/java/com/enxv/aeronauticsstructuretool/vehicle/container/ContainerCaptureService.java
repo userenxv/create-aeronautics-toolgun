@@ -80,6 +80,7 @@ public final class ContainerCaptureService {
                 return;
             }
             long blocks = ContainerCaptureBlocks.countLive(level, connected);
+            ContainerCaptureConfig.checkBlockLimit(blocks);
             int ticks = ContainerCaptureConfig.durationTicks(blocks, player);
             Session session = new Session(player, level, context.getHand(), stack, stack.copy(), item, root,
                     connected, targets, blocks, ticks);
@@ -238,6 +239,13 @@ public final class ContainerCaptureService {
     }
 
     private static void fail(ServerPlayer player, Exception exception) {
+        if (exception instanceof ContainerCaptureLimitException limit) {
+            player.stopUsingItem();
+            PacketDistributor.sendToPlayer(player, new SyncContainerCapturePayload(0, 0, 0, 0));
+            player.sendSystemMessage(Component.translatable(
+                    "message.create_aeronautics_toolgun.capture_block_limit", limit.blocks(), limit.maximum()));
+            return;
+        }
         AeronauticsStructureToolMod.LOGGER.error("Container capture failed for {}", player.getUUID(), exception);
         message(player, exception instanceof ContainerBackupWriter.QueueFullException ? "backup_busy"
                 : ContainerCaptureReceipt.pending(player.getMainHandItem())

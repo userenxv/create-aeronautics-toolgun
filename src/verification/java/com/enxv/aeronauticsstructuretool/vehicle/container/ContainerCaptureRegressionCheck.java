@@ -20,6 +20,7 @@ public final class ContainerCaptureRegressionCheck {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         verifyBackups();
+        verifyBlockLimits();
         check(ContainerCaptureConfig.durationTicks(50, true, 50) == 20, "50 blocks must take one second");
         check(ContainerCaptureConfig.durationTicks(500, true, 50) == 200, "500 blocks must take ten seconds");
         check(ContainerCaptureConfig.durationTicks(51, true, 50) == 21, "fractional ticks must round up");
@@ -139,6 +140,61 @@ public final class ContainerCaptureRegressionCheck {
 
     private static void check(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
+    }
+
+    private static void verifyBlockLimits() throws Exception {
+        var spec = ContainerCaptureConfig.SPEC;
+        var config = com.electronwill.nightconfig.core.CommentedConfig.inMemory();
+        spec.correct(config);
+        var loaded = com.enxv.aeronauticsstructuretool.verification.InMemoryServerConfig.wrap(config);
+        spec.acceptConfig(loaded);
+        try {
+            check(Boolean.FALSE.equals(config.get("containerCapture.limitCaptureBlocks")), "capture limit must be disabled by default");
+            check(Integer.valueOf(4096).equals(config.get("containerCapture.maxCaptureBlocks")), "default capture limit must be 4096");
+            ContainerCaptureConfig.checkBlockLimit(Long.MAX_VALUE);
+            config.set("containerCapture.limitCaptureBlocks", true);
+            config.set("containerCapture.maxCaptureBlocks", 25);
+            spec.acceptConfig(loaded);
+            ContainerCaptureConfig.checkBlockLimit(25);
+            try {
+                ContainerCaptureConfig.checkBlockLimit(26);
+                throw new AssertionError("configured block limit was ignored");
+            } catch (ContainerCaptureLimitException expected) {
+                check(expected.maximum() == 25, "server limit must use reloaded value");
+            }
+            config.set("containerCapture.limitCaptureBlocks", false);
+            spec.acceptConfig(loaded);
+            ContainerCaptureConfig.checkBlockLimit(Long.MAX_VALUE);
+        } finally {
+            spec.acceptConfig(null);
+        }
+        ContainerCaptureConfig.checkBlockLimit(Long.MAX_VALUE, false, 1);
+        ContainerCaptureConfig.checkBlockLimit(0, true, 1);
+        ContainerCaptureConfig.checkBlockLimit(10000, true, 10000);
+        ContainerCaptureConfig.checkBlockLimit(Integer.MAX_VALUE, true, Integer.MAX_VALUE);
+        for (long count : new long[]{10001, Long.MAX_VALUE}) {
+            try {
+                ContainerCaptureConfig.checkBlockLimit(count, true, 10000);
+                throw new AssertionError("oversized vehicle accepted");
+            } catch (ContainerCaptureLimitException expected) {
+                check(expected.blocks() == count && expected.maximum() == 10000,
+                        "limit rejection must preserve actual counts without integer overflow");
+            }
+        }
+        boolean[] removed = {false};
+        try {
+            ContainerCaptureCommit.execute(List.of(1), new ContainerCaptureCommit.Store<Integer>() {
+                public void prepare(List<Integer> originals) throws Exception {
+                    ContainerCaptureConfig.checkBlockLimit(10001, true, 10000);
+                }
+                public void removeOriginal(Integer original) { removed[0] = true; }
+                public void confirmRemoved(Integer original) { throw new AssertionError("unreachable"); }
+                public void finish() { throw new AssertionError("unreachable"); }
+            });
+            throw new AssertionError("over-limit capture reached deletion");
+        } catch (ContainerCaptureLimitException expected) {
+            check(!removed[0], "policy rejection must preserve originals");
+        }
     }
 
     private static void verifyBackups() throws Exception {

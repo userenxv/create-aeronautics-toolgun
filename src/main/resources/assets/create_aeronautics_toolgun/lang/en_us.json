@@ -294,6 +294,7 @@
   "message.create_aeronautics_toolgun.capture_menu_opened": "Packing cancelled: a menu was opened. The vehicle was not packed.",
   "message.create_aeronautics_toolgun.capture_busy": "Another player is already packing this vehicle.",
   "message.create_aeronautics_toolgun.capture_failed": "Packing failed before removal. The original vehicle is unchanged; see the server log for details.",
+  "message.create_aeronautics_toolgun.capture_block_limit": "Cannot pack vehicle: %1$s blocks exceeds the limit of %2$s.",
   "message.create_aeronautics_toolgun.capture_recovery": "Container locked after an incomplete operation. Stored vehicle data is retained. Keep this container and contact the server administrator; retrying will not remove or duplicate vehicles.",
   "message.create_aeronautics_toolgun.query_renamed": "Renamed physical structure to: %s",
   "message.create_aeronautics_toolgun.query_action_failed": "Query action failed: %s",

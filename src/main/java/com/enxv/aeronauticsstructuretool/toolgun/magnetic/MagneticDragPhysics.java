@@ -1,6 +1,7 @@
 package com.enxv.aeronauticsstructuretool.toolgun.magnetic;
 
 import com.enxv.aeronauticsstructuretool.compat.sable.SableConstraintApiBridge;
+import com.enxv.aeronauticsstructuretool.SurvivalToolgunConfig;
 import dev.ryanhcode.sable.api.physics.PhysicsPipeline;
 import dev.ryanhcode.sable.api.physics.constraint.ConstraintJointAxis;
 import dev.ryanhcode.sable.api.physics.constraint.PhysicsConstraintHandle;
@@ -39,6 +40,10 @@ public final class MagneticDragPhysics {
         );
         try {
             ConstraintTuning tuning = profile.tuning;
+            // Read only on the authoritative server constraint path. Client targeting and
+            // launch/damping math keep their existing tuning and need no extra packets.
+            double linearMaxForce = linearMaxForce(profile);
+            double angularMaxForce = angularMaxForce(profile);
             double linearDamping = linearDampingForMass(
                     subLevel.getMassTracker().getMass(),
                     profile
@@ -49,8 +54,8 @@ public final class MagneticDragPhysics {
                         0.0D,
                         tuning.angularStiffness,
                         tuning.angularDamping,
-                        tuning.angularMaxForce > 0.0D,
-                        tuning.angularMaxForce
+                        angularMaxForce > 0.0D,
+                        angularMaxForce
                 );
             }
 
@@ -60,24 +65,24 @@ public final class MagneticDragPhysics {
                     jointTarget.x,
                     tuning.linearStiffness,
                     linearDamping,
-                    tuning.linearMaxForce > 0.0D,
-                    tuning.linearMaxForce
+                    linearMaxForce > 0.0D,
+                    linearMaxForce
             );
             constraint.setMotor(
                     ConstraintJointAxis.LINEAR_Y,
                     jointTarget.y,
                     tuning.linearStiffness,
                     linearDamping,
-                    tuning.linearMaxForce > 0.0D,
-                    tuning.linearMaxForce
+                    linearMaxForce > 0.0D,
+                    linearMaxForce
             );
             constraint.setMotor(
                     ConstraintJointAxis.LINEAR_Z,
                     jointTarget.z,
                     tuning.linearStiffness,
                     linearDamping,
-                    tuning.linearMaxForce > 0.0D,
-                    tuning.linearMaxForce
+                    linearMaxForce > 0.0D,
+                    linearMaxForce
             );
             return constraint;
         } catch (RuntimeException exception) {
@@ -153,6 +158,16 @@ public final class MagneticDragPhysics {
 
     static ConstraintTuning tuning(Profile profile) {
         return profile.tuning;
+    }
+
+    static double linearMaxForce(Profile profile) {
+        return profile == Profile.STANDARD
+                ? SurvivalToolgunConfig.magneticLinearMaxForce() : profile.tuning.linearMaxForce;
+    }
+
+    static double angularMaxForce(Profile profile) {
+        return profile == Profile.STANDARD
+                ? SurvivalToolgunConfig.magneticAngularMaxForce() : profile.tuning.angularMaxForce;
     }
 
     static double linearDampingForMass(double mass, Profile profile) {

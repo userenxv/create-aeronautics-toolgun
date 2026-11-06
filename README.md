@@ -29,6 +29,12 @@ The current development target is Sable 2.0.3 and Create Aeronautics 1.3.0.
 
 Gradle downloads the pinned dependencies and runs the primary and legacy compatibility checks automatically. The mod JAR is written to `build/libs/`.
 
+## Server configuration
+
+In `config/create_aeronautics_toolgun-server.toml`, `[survivalMagneticGun]` exposes `linearMaxForce` (default `5500.0`) and `angularMaxForce` (default `24000.0`). Lower values weaken the survival magnetic gun's grabbing and turning motors. These settings do not affect the creative magnetic gun or launch impulses.
+
+In `config/create_aeronautics_toolgun-container.toml`, `[containerCapture]` includes `limitCaptureBlocks = false` and `maxCaptureBlocks = 4096`. Enable the limit to restrict reusable and single-use containers, including when used in creative mode. The count includes connected physical bodies and supported moving contraptions, excludes inventory contents, and accepts vehicles exactly at the limit. Vehicles already stored can still be released. Both singleplayer and dedicated servers enforce their own server configuration.
+
 ## Contributing
 
 Issues and pull requests are welcome. Include the Minecraft/mod versions, a minimal reproduction, and the relevant log when reporting a bug. Run the full build before submitting code changes.

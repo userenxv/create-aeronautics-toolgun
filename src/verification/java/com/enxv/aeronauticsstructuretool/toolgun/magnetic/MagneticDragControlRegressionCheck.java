@@ -9,12 +9,46 @@ public final class MagneticDragControlRegressionCheck {
     private MagneticDragControlRegressionCheck() {
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         verifyConstraintTargetFrame();
         verifyStaffMotorTuning();
         verifySurvivalDampingDoesNotOvershoot();
         verifyUprightOrientation();
         verifyLaunchSpeedScaling();
+        verifyConfiguredForceLimits();
+    }
+
+    private static void verifyConfiguredForceLimits() throws Exception {
+        net.neoforged.fml.loading.LoadingModList.of(java.util.List.of(), java.util.List.of(),
+                java.util.List.of(), java.util.List.of(), java.util.Map.of());
+        var spec = com.enxv.aeronauticsstructuretool.SurvivalToolgunConfig.SPEC;
+        var config = com.electronwill.nightconfig.core.CommentedConfig.inMemory();
+        spec.correct(config);
+        var loaded = com.enxv.aeronauticsstructuretool.verification.InMemoryServerConfig.wrap(config);
+        spec.acceptConfig(loaded);
+        try {
+            require(MagneticDragPhysics.linearMaxForce(MagneticDragPhysics.Profile.STANDARD) == 5500
+                            && MagneticDragPhysics.angularMaxForce(MagneticDragPhysics.Profile.STANDARD) == 24000,
+                    "default server config must preserve survival force limits");
+            config.set("survivalMagneticGun.linearMaxForce", 1200.0D);
+            config.set("survivalMagneticGun.angularMaxForce", 3000.0D);
+            spec.acceptConfig(loaded);
+            require(MagneticDragPhysics.linearMaxForce(MagneticDragPhysics.Profile.STANDARD) == 1200
+                            && MagneticDragPhysics.angularMaxForce(MagneticDragPhysics.Profile.STANDARD) == 3000,
+                    "server config reload must reach the motor limits without stale tuning");
+            require(MagneticDragPhysics.linearMaxForce(MagneticDragPhysics.Profile.CREATIVE) == 0
+                            && MagneticDragPhysics.angularMaxForce(MagneticDragPhysics.Profile.CREATIVE) == 0,
+                    "survival config must not weaken the creative gun");
+            require(MagneticDragPhysics.tuning(MagneticDragPhysics.Profile.STANDARD).maximumLaunchImpulse() == 25000,
+                    "grab configuration must not alter launch impulses");
+            for (double invalid : new double[]{0, -1, Double.NaN, Double.POSITIVE_INFINITY}) {
+                var value = (net.neoforged.neoforge.common.ModConfigSpec.ValueSpec)
+                        spec.getSpec().get("survivalMagneticGun.linearMaxForce");
+                require(!value.test(invalid), "zero, negative and nonfinite force limits must be rejected");
+            }
+        } finally {
+            spec.acceptConfig(null);
+        }
     }
 
     private static void verifyConstraintTargetFrame() {

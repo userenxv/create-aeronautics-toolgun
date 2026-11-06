@@ -295,6 +295,7 @@
   "message.create_aeronautics_toolgun.capture_menu_opened": "收纳已中断：打开了其他界面，载具未被收纳。",
   "message.create_aeronautics_toolgun.capture_busy": "其他玩家正在收纳这台载具。",
   "message.create_aeronautics_toolgun.capture_failed": "收纳在删除载具前失败，原载具保持不变；详情请查看服务端日志。",
+  "message.create_aeronautics_toolgun.capture_block_limit": "无法收纳：载具包含 %1$s 个方块，超过上限 %2$s。",
   "message.create_aeronautics_toolgun.capture_recovery": "操作未完整完成，容器已锁定，已存载具数据仍然保留。请保留容器并联系服务器管理员；再次使用不会删除或复制载具。",
   "message.create_aeronautics_toolgun.query_renamed": "\u5df2\u91cd\u547d\u540d\u7269\u7406\u7ed3\u6784\uff1a%s",
   "message.create_aeronautics_toolgun.query_action_failed": "\u67e5\u8be2\u64cd\u4f5c\u5931\u8d25\uff1a%s",

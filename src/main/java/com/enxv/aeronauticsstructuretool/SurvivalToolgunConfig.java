@@ -12,6 +12,8 @@ public final class SurvivalToolgunConfig {
     private static final ModConfigSpec.BooleanValue ALLOW_TRANSLATE;
     private static final ModConfigSpec.BooleanValue ALLOW_ROTATE;
     private static final ModConfigSpec.BooleanValue ALLOW_DISCONNECT;
+    private static final ModConfigSpec.DoubleValue MAGNETIC_LINEAR_MAX_FORCE;
+    private static final ModConfigSpec.DoubleValue MAGNETIC_ANGULAR_MAX_FORCE;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -31,10 +33,24 @@ public final class SurvivalToolgunConfig {
         ALLOW_DISCONNECT = builder.comment("Allow the survival structure tool gun to remove tracked toolgun constraints.")
                 .define("allowDisconnect", true);
         builder.pop();
+        builder.push("survivalMagneticGun");
+        MAGNETIC_LINEAR_MAX_FORCE = builder.comment("Maximum grabbing force per linear motor axis for the survival magnetic gun. Original value: 5500. Lower values weaken lifting and pulling. Does not affect the creative magnetic gun or launch impulses.")
+                .defineInRange("linearMaxForce", 5500.0D, 0.01D, 1000000000.0D);
+        MAGNETIC_ANGULAR_MAX_FORCE = builder.comment("Maximum rotational motor force for the survival magnetic gun. Original value: 24000. Lower values weaken holding and turning. Does not affect the creative magnetic gun.")
+                .defineInRange("angularMaxForce", 24000.0D, 0.01D, 1000000000.0D);
+        builder.pop();
         SPEC = builder.build();
     }
 
     private SurvivalToolgunConfig() {
+    }
+
+    public static double magneticLinearMaxForce() {
+        return MAGNETIC_LINEAR_MAX_FORCE.get();
+    }
+
+    public static double magneticAngularMaxForce() {
+        return MAGNETIC_ANGULAR_MAX_FORCE.get();
     }
 
     public static boolean allowSave() {
