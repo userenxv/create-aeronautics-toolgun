@@ -119,9 +119,9 @@ public final class ClientToolSettingsStore {
         properties.setProperty("bearingAxisMode", preferences.bearingAxisMode.name());
         properties.setProperty("weldSelectionMode", preferences.weldSelectionMode.name());
         properties.setProperty("snapMode", preferences.snapMode.name());
-        properties.setProperty("rotationStep", Integer.toString(preferences.rotationStep));
+        properties.setProperty("rotationStep", Double.toString(preferences.rotationStep));
         properties.setProperty("translateStep", Double.toString(preferences.translateStep));
-        properties.setProperty("rotationDegrees", Integer.toString(preferences.rotationDegrees));
+        properties.setProperty("rotationDegrees", Double.toString(preferences.rotationDegrees));
         properties.setProperty("weldAdjustStep", Double.toString(preferences.weldAdjustStep));
         properties.setProperty("scalePercent", Integer.toString(preferences.scalePercent));
         properties.setProperty("offsetX", Integer.toString(preferences.offsetX));

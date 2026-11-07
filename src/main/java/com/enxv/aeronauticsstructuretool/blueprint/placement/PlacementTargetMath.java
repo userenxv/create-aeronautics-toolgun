@@ -88,7 +88,7 @@ public final class PlacementTargetMath {
         return target;
     }
 
-    public static Quaterniond computeExtraRotation(Direction face, int rotationDegrees) {
+    public static Quaterniond computeExtraRotation(Direction face, double rotationDegrees) {
         if (rotationDegrees == 0) {
             return new Quaterniond();
         }

@@ -161,7 +161,7 @@ public final class ClientToolState {
         persist();
     }
 
-    public static int getRotationStep() {
+    public static double getRotationStep() {
         return PREFERENCES.rotationStep();
     }
 
@@ -179,7 +179,7 @@ public final class ClientToolState {
         persist();
     }
 
-    public static int getRotationDegrees() {
+    public static double getRotationDegrees() {
         return PREFERENCES.rotationDegrees();
     }
 
